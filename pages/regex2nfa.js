@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 // import { data } from '../data'
 import './regex2nfa.module.scss'
 import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY } from "d3";
@@ -8,6 +8,12 @@ import {
 } from '../utils/commonFunctions'
 
 import api from '../api'
+import styles from './regex2nfa.module.scss'
+import { Oval } from "react-loader-spinner";
+import Header from "@/component/header";
+import { useDispatch } from "react-redux";
+import headerActions from "@/redux/action/headerActions";
+
 const Regex2Dfa = () => {
 
     const [force, setForce] = useState(false)
@@ -21,38 +27,20 @@ const Regex2Dfa = () => {
     const [nodes, setNodes] = useState()
     const [states, setStates] = useState()
     const [links, setLinks] = useState()
-    const [regex, setRegex] = useState('01*+1')
+    const [regex, setRegex] = useState('')
     const [nfa, setNfa] = useState()
+    const [showLoader, setShowLoader] = useState(false)
 
-    let handleConvertRegex2Nfa = async () => {
-        //post regex
-        let response = await api.regex2nfa(regex)
-
-        if (!response.err) {
-            let data = response.data
-            console.log(data)
-            setData(data)
-            setNfa(data)
-            setWidthSvg(window.innerWidth - 50)
-            setHeightSvg(window.innerHeight - 200)
-            setStates(data.states)
-            let newState = data.states.map(((state, index) => {
-                let newState = {
-                    id: state,
-                    label: index.toString()
-                }
-                return newState
-            }))
-            setNodes(newState)
-            let links = transition_function(data.transition_function)
-            console.log(links, '=========')
-            setLinks(links)
-        }
-
-    }
-
+    const [dataShowDfa, setDataShowDfa] = useState(false)
+    const dispatch = useDispatch()
 
     useEffect(() => {
+        dispatch({
+            type: headerActions.SET_SELECT_HEADER,
+            headerSelect: 'regex2nfa'
+        })
+        setWidthSvg(window.innerWidth - 50)
+        setHeightSvg(window.innerHeight - 200)
         let simulation = null
         if (nodes && states && links) {
             select('#parentSvg').append('svg')
@@ -80,10 +68,10 @@ const Regex2Dfa = () => {
                 .enter().append("marker")
                 .attr("id", d => d)
                 .attr("viewBox", "0 -5 10 10")
-                .attr("refX", 35) // Vị trí của mũi tên
+                .attr("refX", 30) // Vị trí của mũi tên
                 .attr("refY", 0)
-                .attr("markerWidth", 6)
-                .attr("markerHeight", 6)
+                .attr("markerWidth", 5)
+                .attr("markerHeight", 5)
                 .attr("orient", "auto")
                 .append("path")
                 .attr("d", "M0,-5L10,0L0,5");
@@ -368,24 +356,80 @@ const Regex2Dfa = () => {
         console.log(response)
     }
 
+    let handleConvertRegex2Nfa = async () => {
+        //post regex
+        if (regex) {
+
+            setShowLoader(true)
+            let response = await api.regex2nfa(regex)
+
+            if (!response.err) {
+                let data = response.data
+                console.log(data)
+                setData(data)
+                setNfa(data)
+                setStates(data.states)
+                let newState = data.states.map(((state, index) => {
+                    let newState = {
+                        id: state,
+                        label: index.toString()
+                    }
+                    return newState
+                }))
+                setNodes(newState)
+                let links = transition_function(data.transition_function)
+                console.log(links, '=========')
+                setLinks(links)
+                setShowLoader(false)
+            }
+        } else {
+            alert('Please enter regular expression')
+        }
+    }
 
     return (
-        <div >
+        <div className={styles.regex2dfa}>
+            <Header />
+            {
+                showLoader &&
+                <div className={styles.loader}>
+                    <div className={styles.backgroundLoader}></div>
+                    <div className={styles.loaderContainer}>
+                        <Oval
+                            height={80}
+                            width={80}
+                            color="#4fa94d"
+                            wrapperStyle={{}}
+                            wrapperClass="Loader"
+                            visible={true}
+                            ariaLabel='oval-loading'
+                            secondaryColor="#4fa94d"
+                            strokeWidth={2}
+                            strokeWidthSecondary={2}
+                        />
+                    </div>
+                </div>
+            }
             <div>
                 {/* <button onClick={handleForce}>force</button> */}
-                <button onClick={handleShowDFA}>console.log DFA</button>
-                <div>
-                    <label>Nhập biểu thức chính quy:</label>
-                    <input
-                        type="text"
-                        value={regex}
-                        onChange={(e) => { handleChangeInputRegex(e) }}
-                    />
-                    <button
-                        onClick={handleConvertRegex2Nfa}
-                    >Chuyển đổi</button>
+                {/* <button onClick={handleShowDFA}>console.log DFA</button> */}
+                <div className={styles.inputData}>
+                    <div className={styles.inputDataTop}>
+                        <label>Regex: </label>
+                        <input
+                            type="text"
+                            value={regex}
+                            onChange={(e) => { handleChangeInputRegex(e) }}
+                        />
+                    </div>
+                    <div className={styles.inputDataBottom}>
+                        <button
+                            onClick={handleConvertRegex2Nfa} >
+                            Convert
+                        </button>
+                    </div>
                 </div>
-                <div>
+                {/* <div>
                     <label>Edge length:</label>
                     <input
                         type="number" step='10'
@@ -394,8 +438,8 @@ const Regex2Dfa = () => {
                         min={50}
                         max={300}
                     ></input>
-                </div>
-                <div>
+                </div> */}
+                {/* <div>
                     <label>circle radius:</label>
                     <input
                         type="number" step='1'
@@ -404,10 +448,10 @@ const Regex2Dfa = () => {
                         min={15}
                         max={40}
                     ></input>
-                </div>
+                </div> */}
             </div>
             <div id="parentSvg">
-                {/* <svg className='MySvg' id="myCanvas" width={widthSvg} height={heightSvg}></svg> */}
+                <svg className='MySvg' id="myCanvas" width={widthSvg} height={heightSvg}></svg>
             </div>
         </div>
     )

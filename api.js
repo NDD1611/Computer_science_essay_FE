@@ -24,7 +24,18 @@ const nfa2dfa = async (nfa) => {
     }
 }
 
+const dfa2regex = async (dfa) => {
+    try {
+        let response = await axios.post('/dfa-to-regex', { dfa: dfa })
+        return response
+    } catch (exception) {
+        return {
+            err: true,
+            exception
+        }
+    }
+}
+
 export default {
-    regex2nfa,
-    nfa2dfa
+    regex2nfa, nfa2dfa, dfa2regex
 }

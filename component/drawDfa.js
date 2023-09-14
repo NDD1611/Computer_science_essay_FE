@@ -19,9 +19,10 @@ const DrawDfa = ({ dataShowDfa }) => {
     const [finalState, setFinalState] = useState()
 
     useEffect(() => {
-        // setWidthSvg(window.innerWidth)
-        // setHeightSvg(window.innerHeight)
+        setWidthSvg(window.innerWidth)
+        setHeightSvg(window.innerHeight)
         let { final_states, links, states } = dataShowDfa
+        console.log(dataShowDfa)
         setStates(states)
         setLinks(links)
         setNodes(states)
@@ -158,13 +159,14 @@ const DrawDfa = ({ dataShowDfa }) => {
                         if (d.target.y > bottomThreshold) {
                             targetY = bottomThreshold
                         }
-                        if (pointControlX && pointControlY) {
-                            return `M ${sourceX} ${sourceY} C ${pointControlX} ${pointControlY}, ${pointControlX} ${pointControlY}, ${targetX} ${targetY}`
-                        }
+
                         // vẽ path cho 1 node có source trùng target
                         if (d.source.id === d.target.id) {
                             console.log(d.source.id, d.target.id)
-                            return `M ${sourceX - radiusCircle} ${sourceY} C ${sourceX - radiusCircle / 2} ${sourceY - radiusCircle * 3}, ${sourceX + radiusCircle / 2} ${sourceY - radiusCircle * 4}, ${targetX + radiusCircle} ${targetY}`
+                            return `M ${sourceX - radiusCircle} ${sourceY} C ${sourceX - radiusCircle} ${sourceY - radiusCircle * 4}, ${sourceX + radiusCircle} ${sourceY - radiusCircle * 4}, ${targetX + radiusCircle} ${targetY}`
+                        }
+                        if (pointControlX && pointControlY) {
+                            return `M ${sourceX} ${sourceY} C ${pointControlX} ${pointControlY}, ${pointControlX} ${pointControlY}, ${targetX} ${targetY}`
                         }
                     })
 

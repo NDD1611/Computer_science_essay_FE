@@ -35,6 +35,7 @@ export let transition_function = (transitionDatas) => {
     }
     return listPathAllNodes
 }
+
 export let checkLinkTrungNhau = (links) => {
     let listLinkTrungNhauTheoCap = []
     let listLinkTrungNhau = []

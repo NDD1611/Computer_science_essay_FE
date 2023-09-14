@@ -1,0 +1,33 @@
+.header {
+    display: flex;
+    gap: 50px;
+    padding: 20px;
+    width: 100%;
+
+    .headerLeft {
+        font-size: 40px;
+    }
+
+    .headerRight {
+        display: flex;
+        gap: 20px;
+        justify-content: space-around;
+        align-items: center;
+
+        .select {
+            background-color: #ccc;
+        }
+
+        .link {
+            border-radius: 5px;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: #000;
+            font-size: 20px;
+
+            &:hover {
+                background-color: #ccc;
+            }
+        }
+    }
+}

@@ -1,12 +1,11 @@
 #myCanvas,
 svg {
     border: 1px solid #000;
-
 }
 
 .link {
     stroke: #ccc;
-    stroke-width: 2;
+    stroke-width: 3;
     fill: none;
     cursor: pointer;
 }

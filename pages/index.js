@@ -1,16 +1,12 @@
 
 import Link from "next/link";
+import styles from './index.module.scss'
+import Header from "@/component/header";
 
 const Home = () => {
     return (
         <div>
-            Home page
-            <div>
-                <Link href='/regex2nfa' >regex to nfa</Link>
-            </div>
-            <div>
-                <Link href='/nfa2dfa' >nfa to dfa</Link>
-            </div>
+            <Header />
         </div>
     )
 }

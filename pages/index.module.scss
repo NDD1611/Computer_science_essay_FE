@@ -1,0 +1,27 @@
+.title {
+    padding-top: 50px;
+    font-size: 50px;
+    display: flex;
+    justify-content: center;
+}
+
+.containerSelect {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 100px;
+
+    .containerLink {
+
+        .link {
+            border-radius: 5px;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: #000;
+            font-size: 20px;
+
+            &:hover {
+                background-color: #ccc;
+            }
+        }
+    }
+}
