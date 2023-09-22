@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 // import { data } from '../data'
 import './drawDfa.module.scss'
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY } from "d3";
 import {
-    progressOneNode, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
+    select, forceSimulation, forceLink, forceManyBody, forceCenter,
+    selectAll, pointer, drag, forceX, forceY
+} from "d3";
+import {
+    pathLink, progressOneNode, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
 } from '../utils/commonFunctions'
 
 const DrawDfa = ({ dataShowDfa }) => {
@@ -22,18 +25,31 @@ const DrawDfa = ({ dataShowDfa }) => {
         setWidthSvg(window.innerWidth)
         setHeightSvg(window.innerHeight)
         let { final_states, links, states } = dataShowDfa
-        console.log(dataShowDfa)
         setStates(states)
+
+        // xu ly 2 link trung nhau => label bi chong len nhau
+        for (let i = 0; i < links.length - 1; i++) {
+            let link1 = links[i]
+            for (let j = i + 1; j < links.length; j++) {
+                let link2 = links[j]
+                if (link1.source == link2.source && link1.target == link2.target) {
+                    if (link1.label != link2.label) {
+                        link1.label = link1.label + ',' + link2.label
+                    }
+                    links.splice(j, 1)
+                    j--
+                }
+            }
+        }
+
         setLinks(links)
         setNodes(states)
         setFinalState(final_states)
     }, [dataShowDfa])
 
     useEffect(() => {
-        console.log('drawDfa re render', dataShowDfa)
         let simulation = null
         if (nodes && states && links) {
-            console.log(nodes, states, links)
             select('#canvasShowDfa').append('svg')
                 .attr('id', 'canvasDrawDfa')
                 .attr('width', widthSvg)
@@ -162,7 +178,6 @@ const DrawDfa = ({ dataShowDfa }) => {
 
                         // vẽ path cho 1 node có source trùng target
                         if (d.source.id === d.target.id) {
-                            console.log(d.source.id, d.target.id)
                             return `M ${sourceX - radiusCircle} ${sourceY} C ${sourceX - radiusCircle} ${sourceY - radiusCircle * 4}, ${sourceX + radiusCircle} ${sourceY - radiusCircle * 4}, ${targetX + radiusCircle} ${targetY}`
                         }
                         if (pointControlX && pointControlY) {
@@ -305,7 +320,6 @@ const DrawDfa = ({ dataShowDfa }) => {
         }
 
         return () => {
-            console.log('remove dfa')
             select('#canvasDrawDfa').remove()
         }
         // end effect

@@ -1,8 +1,12 @@
 
 import styles from './nfa2dfa.module.scss'
 import { useEffect, useState } from 'react';
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY, dsvFormat } from "d3";
 import {
+    select, forceSimulation, forceLink, forceManyBody,
+    forceCenter, selectAll, pointer, drag, forceX, forceY, dsvFormat
+} from "d3";
+import {
+    evaluateOfLinkLabelX, evaluateOfLinkLabelY, pathLink,
     progressOneNode, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
 } from '../utils/commonFunctions'
 import { v4 as uuidv4 } from 'uuid';
@@ -116,73 +120,8 @@ const Nfa2Dfa = () => {
         simulation.on("tick", () => {
             link
                 .attr('d', d => {
-                    let vectors = findVectors(d.source.x, d.source.y, d.target.x, d.target.y)
-
-                    let percentEdge = vectors.length / lengthDistanceEdge
-
-                    let pointCenterX = (d.source.x + d.target.x) / 2
-                    let pointCenterY = (d.source.y + d.target.y) / 2
-
-                    let pointControlX = pointCenterX
-                    let pointControlY = pointCenterY
-                    for (let i = 0; i < listLinkTrung.length; i++) {
-                        let { link1, link2 } = listLinkTrung[i]
-                        if (d === link1 || d === link2) {
-                            pointControlX = pointCenterX + (vectors.vtpt.x / percentEdge)
-                            pointControlY = pointCenterY + (vectors.vtpt.y / percentEdge)
-                        }
-                    }
-
-                    let sourceX = d.source.x
-                    let sourceY = d.source.y
-                    let targetX = d.target.x
-                    let targetY = d.target.y
-
-                    let leftThreshold = 0 + radiusCircle
-                    let rightThreshold = widthSvg - radiusCircle
-                    let topThreshold = 0 + radiusCircle
-                    let bottomThreshold = heightSvg - radiusCircle
-
-                    if (pointControlX < leftThreshold) {
-                        pointControlX = leftThreshold
-                    }
-                    if (pointControlX > rightThreshold) {
-                        pointControlX = rightThreshold
-                    }
-                    if (pointControlY < topThreshold) {
-                        pointControlY = topThreshold
-                    }
-                    if (pointControlY > bottomThreshold) {
-                        pointControlY = bottomThreshold
-                    }
-
-                    if (d.source.x < leftThreshold) {
-                        sourceX = leftThreshold
-                    }
-                    if (d.source.x > rightThreshold) {
-                        sourceX = rightThreshold
-                    }
-                    if (d.source.y < topThreshold) {
-                        sourceY = topThreshold
-                    }
-                    if (d.source.y > bottomThreshold) {
-                        sourceY = bottomThreshold
-                    }
-
-                    if (d.target.x < leftThreshold) {
-                        targetX = leftThreshold
-                    }
-                    if (d.target.x > rightThreshold) {
-                        targetX = rightThreshold
-                    }
-                    if (d.target.y < topThreshold) {
-                        targetY = topThreshold
-                    }
-                    if (d.target.y > bottomThreshold) {
-                        targetY = bottomThreshold
-                    }
-
-                    return `M ${sourceX} ${sourceY} C ${pointControlX} ${pointControlY}, ${pointControlX} ${pointControlY}, ${targetX} ${targetY}`
+                    let path = pathLink(d, widthSvg, heightSvg, radiusCircle, lengthDistanceEdge, listLinkTrung)
+                    return path
                 })
 
             node
@@ -212,58 +151,12 @@ const Nfa2Dfa = () => {
 
             linkLabels
                 .attr("x", d => {
-                    let leftThreshold = 0 + radiusCircle
-                    let rightThreshold = widthSvg - radiusCircle
-                    for (let i = 0; i < listLinkTrung.length; i++) {
-                        let { link1, link2 } = listLinkTrung[i]
-                        if (d === link1 || d === link2) {
-                            let vectors = findVectors(d.source.x, d.source.y, d.target.x, d.target.y)
-                            let percentEdge = vectors.length / lengthDistanceEdge
-                            let labelX = ((d.source.x + d.target.x) / 2) + (vectors.vtpt.x / percentEdge)
-                            if (labelX < leftThreshold) {
-                                labelX = leftThreshold
-                            }
-                            if (labelX > rightThreshold) {
-                                labelX = rightThreshold
-                            }
-                            return labelX
-                        }
-                    }
-                    let labelX = ((d.source.x + d.target.x) / 2)
-                    if (labelX < leftThreshold) {
-                        labelX = leftThreshold
-                    }
-                    if (labelX > rightThreshold) {
-                        labelX = rightThreshold
-                    }
-                    return labelX
+                    let x = evaluateOfLinkLabelX(d, widthSvg, radiusCircle, lengthDistanceEdge, listLinkTrung)
+                    return x
                 })
                 .attr("y", d => {
-                    let topThreshold = 0 + radiusCircle
-                    let bottomThreshold = heightSvg - radiusCircle
-                    for (let i = 0; i < listLinkTrung.length; i++) {
-                        let { link1, link2 } = listLinkTrung[i]
-                        if (d === link1 || d === link2) {
-                            let vectors = findVectors(d.source.x, d.source.y, d.target.x, d.target.y)
-                            let percentEdge = vectors.length / lengthDistanceEdge
-                            let labelY = ((d.source.y + d.target.y) / 2) + (vectors.vtpt.y / percentEdge)
-                            if (labelY < topThreshold) {
-                                labelY = topThreshold
-                            }
-                            if (labelY > bottomThreshold) {
-                                labelY = bottomThreshold
-                            }
-                            return labelY
-                        }
-                    }
-                    let labelY = ((d.source.y + d.target.y) / 2)
-                    if (labelY < topThreshold) {
-                        labelY = topThreshold
-                    }
-                    if (labelY > bottomThreshold) {
-                        labelY = bottomThreshold
-                    }
-                    return labelY
+                    let y = evaluateOfLinkLabelY(d, heightSvg, radiusCircle, lengthDistanceEdge, listLinkTrung)
+                    return y
                 });
 
             nodeLabels
@@ -353,7 +246,6 @@ const Nfa2Dfa = () => {
     }
     let handleDeleteNode = (e) => {
         let id = e.target.id
-
         //delete links
         let linksCopy1 = links.filter((link) => {
             return link.source.id != id
@@ -361,7 +253,6 @@ const Nfa2Dfa = () => {
         let linksCopy = linksCopy1.filter((link) => {
             return link.target.id != id
         })
-
         let nodesCopy = [...nodes]
         for (let index in nodesCopy) {
             let node = nodesCopy[index]
@@ -418,7 +309,7 @@ const Nfa2Dfa = () => {
     }
 
     let handleAddLink = (e) => {
-        if (linkFromId && e.target.id && linkFromId != e.target.id) {
+        if (linkFromId && e.target.id) {
             let newLinks = {
                 source: linkFromId,
                 target: e.target.id

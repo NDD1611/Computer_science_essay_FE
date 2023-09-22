@@ -1,22 +1,14 @@
 
-import { use, useEffect, useState } from "react";
-// import { data } from '../data'
-import './regex2nfa.module.scss'
+import { useEffect, useState } from "react";
 import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY } from "d3";
 import {
-    evaluateOfLinkLabelX, evaluateOfLinkLabelY, progressOneNode, pathLink, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
+    evaluateOfLinkLabelX, evaluateOfLinkLabelY, progressOneNode,
+    pathLink, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
 } from '../utils/commonFunctions'
 
-import api from '../api'
-import styles from './regex2nfa.module.scss'
-import { Oval } from "react-loader-spinner";
-import Header from "@/component/header";
-import { useDispatch } from "react-redux";
-import headerActions from "@/redux/action/headerActions";
+import styles from './drawNfa.module.scss'
 
-const Regex2Dfa = () => {
-
-    const [force, setForce] = useState(false)
+const DrawNfa = ({ dataShowNfa }) => {
     const [lengthDistanceEdge, setLengthDistanceEdge] = useState(50)
     const [linkLength, setLinkLength] = useState(200)
     const [radiusCircle, setRadiusCircle] = useState(30)
@@ -27,32 +19,51 @@ const Regex2Dfa = () => {
     const [nodes, setNodes] = useState()
     const [states, setStates] = useState()
     const [links, setLinks] = useState()
-    const [regex, setRegex] = useState('')
-    const [nfa, setNfa] = useState()
-    const [showLoader, setShowLoader] = useState(false)
-
-    const [dataShowDfa, setDataShowDfa] = useState(false)
-    const dispatch = useDispatch()
 
     useEffect(() => {
-        dispatch({
-            type: headerActions.SET_SELECT_HEADER,
-            headerSelect: 'regex2nfa'
-        })
+        let data = dataShowNfa
+        setData(data)
+        setStates(data.states)
+        let newState = data.states.map(((state, index) => {
+            let newState = {
+                id: state,
+                label: index.toString()
+            }
+            return newState
+        }))
+        setNodes(newState)
+        let links = transition_function(data.transition_function)
+        for (let i = 0; i < links.length - 1; i++) {
+            let link1 = links[i]
+            for (let j = i + 1; j < links.length; j++) {
+                let link2 = links[j]
+                if (link1.source == link2.source && link1.target == link2.target) {
+                    if (link1.label != link2.label) {
+                        link1.label = link1.label + ',' + link2.label
+                    }
+                    links.splice(j, 1)
+                    j--
+                }
+            }
+        }
+        setLinks(links)
+    }, [dataShowNfa])
+
+    useEffect(() => {
+
         setWidthSvg(window.innerWidth - 50)
         setHeightSvg(window.innerHeight - 200)
         let simulation = null
         if (nodes && states && links) {
-            select('#parentSvg').append('svg')
-                .attr('id', 'myCanvas')
+            select('#parentSvgDrawNfa').append('svg')
+                .attr('id', 'myCanvasDrawNfa')
                 .attr('width', widthSvg)
                 .attr('height', heightSvg)
 
             let listLinkTrung = checkLinkTrungNhau(links)
 
             // Tạo SVG
-            let svg = select("#myCanvas");
-
+            let svg = select("#myCanvasDrawNfa");
 
             //  Vẽ các liên kết
             let link = svg.selectAll(".link")
@@ -193,7 +204,7 @@ const Regex2Dfa = () => {
         }
 
         return () => {
-            select('#myCanvas').remove()
+            select('#myCanvasDrawNfa').remove()
         }
         // end effect
     })
@@ -236,113 +247,13 @@ const Regex2Dfa = () => {
         setRadiusCircle(e.target.value)
     }
 
-    let handleChangeInputRegex = (e) => {
-        setRegex(e.target.value)
-    }
-
-    let handleShowDFA = async () => {
-        let response = await api.nfa2dfa(nfa)
-        console.log(response)
-    }
-
-    let handleConvertRegex2Nfa = async () => {
-        //post regex
-        if (regex) {
-
-            setShowLoader(true)
-            let response = await api.regex2nfa(regex)
-
-            if (!response.err) {
-                let data = response.data
-                console.log(data)
-                setData(data)
-                setNfa(data)
-                setStates(data.states)
-                let newState = data.states.map(((state, index) => {
-                    let newState = {
-                        id: state,
-                        label: index.toString()
-                    }
-                    return newState
-                }))
-                setNodes(newState)
-                let links = transition_function(data.transition_function)
-                setLinks(links)
-                setShowLoader(false)
-            }
-        } else {
-            alert('Please enter regular expression')
-        }
-    }
-
     return (
         <div className={styles.regex2dfa}>
-            <Header />
-            {
-                showLoader &&
-                <div className={styles.loader}>
-                    <div className={styles.backgroundLoader}></div>
-                    <div className={styles.loaderContainer}>
-                        <Oval
-                            height={80}
-                            width={80}
-                            color="#4fa94d"
-                            wrapperStyle={{}}
-                            wrapperClass="Loader"
-                            visible={true}
-                            ariaLabel='oval-loading'
-                            secondaryColor="#4fa94d"
-                            strokeWidth={2}
-                            strokeWidthSecondary={2}
-                        />
-                    </div>
-                </div>
-            }
-            <div>
-                {/* <button onClick={handleForce}>force</button> */}
-                {/* <button onClick={handleShowDFA}>console.log DFA</button> */}
-                <div className={styles.inputData}>
-                    <div className={styles.inputDataTop}>
-                        <label>Regex: </label>
-                        <input
-                            type="text"
-                            value={regex}
-                            onChange={(e) => { handleChangeInputRegex(e) }}
-                        />
-                    </div>
-                    <div className={styles.inputDataBottom}>
-                        <button
-                            onClick={handleConvertRegex2Nfa} >
-                            Convert
-                        </button>
-                    </div>
-                </div>
-                {/* <div>
-                    <label>Edge length:</label>
-                    <input
-                        type="number" step='10'
-                        value={linkLength}
-                        onChange={(e) => { handleInputLinkLength(e) }}
-                        min={50}
-                        max={300}
-                    ></input>
-                </div> */}
-                {/* <div>
-                    <label>circle radius:</label>
-                    <input
-                        type="number" step='1'
-                        value={radiusCircle}
-                        onChange={(e) => { handleInputRadiusCircle(e) }}
-                        min={15}
-                        max={40}
-                    ></input>
-                </div> */}
-            </div>
-            <div id="parentSvg">
-                <svg className='MySvg' id="myCanvas" width={widthSvg} height={heightSvg}></svg>
+            <div id="parentSvgDrawNfa">
+                {/* <svg className='MySvgDraNfa' id="myCanvasDrawNfa" width={widthSvg} height={heightSvg}></svg> */}
             </div>
         </div>
     )
 }
 
-export default Regex2Dfa;
+export default DrawNfa;

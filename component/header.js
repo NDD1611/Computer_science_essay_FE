@@ -7,10 +7,10 @@ import { useDispatch, useSelector } from 'react-redux'
 
 
 const Header = () => {
-
     const headerSelect = useSelector(state => state.header.headerSelect)
     const dispatch = useDispatch()
     const handleClickLink = (nameSelect) => {
+        console.log(nameSelect)
         dispatch({
             type: headerActions.SET_SELECT_HEADER,
             headerSelect: nameSelect
@@ -24,7 +24,13 @@ const Header = () => {
                 <div className={styles.containerLink}>
                     <Link onClick={() => { handleClickLink('regex2nfa') }} className={`${styles.link} ${headerSelect === 'regex2nfa' && styles.select}`}
                         href='/regex2nfa' >
-                        Regex to NFA
+                        Regex to NFAε
+                    </Link>
+                </div>
+                <div className={styles.containerLink}>
+                    <Link onClick={() => { handleClickLink('nfaEpsilon2Nfa') }} className={`${styles.link} ${headerSelect === 'nfaEpsilon2Nfa' && styles.select}`}
+                        href='/nfaEpsilon2Nfa' >
+                        NFAε to NFA
                     </Link>
                 </div>
                 <div className={styles.containerLink}>

@@ -1,0 +1,33 @@
+.selectMode {
+    background-color: #000;
+    color: #fff;
+}
+
+.loader {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+
+    .backgroundLoader {
+        background-color: #000;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        z-index: 1;
+        opacity: 0.2;
+    }
+
+    .loaderContainer {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        z-index: 99;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        svg {
+            border: none;
+        }
+    }
+}

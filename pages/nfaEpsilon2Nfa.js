@@ -1,40 +1,45 @@
 
-import styles from './nfa2dfa.module.scss'
-import { use, useEffect, useState } from 'react';
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY, dsvFormat } from "d3";
+import styles from './nfaEpsilon2Nfa.module.scss'
+import { startTransition, useEffect, useState } from 'react';
 import {
-    evaluateOfLinkLabelX, evaluateOfLinkLabelY, pathLink, checkLinkTrungNhau, findVectors
+    select, forceSimulation, forceLink, forceManyBody, forceCenter,
+    selectAll, pointer, drag, forceX, forceY, dsvFormat
+} from "d3";
+import {
+    evaluateOfLinkLabelX, evaluateOfLinkLabelY, pathLink,
+    progressOneNode, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
 } from '../utils/commonFunctions'
 import { v4 as uuidv4 } from 'uuid';
-import api from '@/api';
-import { Oval } from 'react-loader-spinner'
+import DrawNfa from '@/component/drawNfa';
 import Header from '@/component/header';
 import { useDispatch } from 'react-redux';
 import headerActions from '@/redux/action/headerActions';
 
-const Dfa2Regex = () => {
+const NfaEpsilon2Nfa = () => {
     const [mode, setMode] = useState(0) // 0: force, 1: draw, 2: delete, 3: edit
     const [subMode, setSubMode] = useState('0')  //0:init no function, 1.0: draging link
     const [nodes, setNodes] = useState([])
     const [lengthDistanceEdge, setLengthDistanceEdge] = useState(50)
     const [linkLength, setLinkLength] = useState(200)
     const [links, setLinks] = useState([])
-    const [widthSvg, setWidthSvg] = useState(800)
+    const [widthSvg, setWidthSvg] = useState(400)
     const [heightSvg, setHeightSvg] = useState(400)
     const [radiusCircle, setRadiusCircle] = useState(30)
     const [linkFromId, setLinkFromId] = useState()
     const [finalStates, setFinalStates] = useState([])
     const [initStates, setInitStates] = useState('')
-    const [regex, setRegex] = useState('')
-    const [showLoader, setShowLoader] = useState(false)
     const dispatch = useDispatch()
+
+    const [dfa, setDfa] = useState()
+    const [dataShowNfa, setDataShowNfa] = useState(false)
+
     useEffect(() => {
         dispatch({
             type: headerActions.SET_SELECT_HEADER,
-            headerSelect: 'dfa2regex'
+            headerSelect: 'nfaEpsilon2Nfa'
         })
         setWidthSvg(window.innerWidth - 50)
-        setHeightSvg(window.innerHeight - 100)
+        setHeightSvg(window.innerHeight - 150)
         let simulation = null
         // if (nodes && states && links) {
         select('#parentSvg').append('svg')
@@ -86,6 +91,7 @@ const Dfa2Regex = () => {
             .attr("r", radiusCircle)
             .attr('id', d => d.id)
 
+
         //  Vẽ văn bản trong các node
         let nodeLabels = svg.selectAll(".node-label")
             .data(nodes)
@@ -101,6 +107,7 @@ const Dfa2Regex = () => {
                 .force("center", forceCenter(svg.attr("width") / 2, svg.attr("height") / 2))
                 .force("charge", forceManyBody().strength(-50))
         } else {
+
             simulation = forceSimulation(nodes)
                 .force("link", forceLink(links).id(d => d.id).distance(linkLength))
             // .force("center", forceCenter(svg.attr("width") / 2, svg.attr("height") / 2))
@@ -148,7 +155,7 @@ const Dfa2Regex = () => {
                 .attr("y", d => {
                     let y = evaluateOfLinkLabelY(d, heightSvg, radiusCircle, lengthDistanceEdge, listLinkTrung)
                     return y
-                })
+                });
 
             nodeLabels
                 .attr("x", d => {
@@ -177,6 +184,9 @@ const Dfa2Regex = () => {
 
         // Kích hoạt tính năng kéo thả cho các node
         node.call(dragCustom(simulation));
+        // node.on('click', (e) => {
+        //     handleNodeClick(e)
+        // })
 
         if (finalStates) {
             finalStates.forEach(finalId => {
@@ -186,6 +196,8 @@ const Dfa2Regex = () => {
         }
         node.filter(d => d.id === initStates)
             .classed("start-border", true);
+
+
 
         return () => {
             select('#myCanvas').remove()
@@ -216,7 +228,6 @@ const Dfa2Regex = () => {
             .on("drag", dragged)
             .on("end", dragEnded);
     }
-
     let handleAddNode = (e) => {
         let offsetX = e.offsetX
         let offsetY = e.offsetY
@@ -240,6 +251,7 @@ const Dfa2Regex = () => {
         let linksCopy = linksCopy1.filter((link) => {
             return link.target.id != id
         })
+
         let nodesCopy = [...nodes]
         for (let index in nodesCopy) {
             let node = nodesCopy[index]
@@ -250,12 +262,6 @@ const Dfa2Regex = () => {
                     nodesCopy[i].label = i
                 }
             }
-        }
-        let final_state_copy = finalStates
-        if (finalStates.includes(id)) {
-            let index = finalStates.indexOf(id)
-            final_state_copy.splice(index, 1)
-            setFinalStates(final_state_copy)
         }
         setNodes(nodesCopy)
         setLinks(linksCopy)
@@ -351,25 +357,14 @@ const Dfa2Regex = () => {
 
             inputBox.addEventListener('change', (eventInput) => {
                 let value = eventInput.target.value
-
-                let check = false
-
-                links.forEach(link => {
-                    if (link.source.id === sourceId && link.label === value) {
-                        alert('Kí hiệu nhập này đã có phép chuyển khỏi trạng thái')
-                        check = true
-                    }
-                })
-                if (!check) {
-                    let newLinks = links.map(link => {
-                        if (link.source.id === sourceId && link.target.id === targetId) {
-                            link.label = value
-                            return link
-                        }
+                let newLinks = links.map(link => {
+                    if (link.source.id === sourceId && link.target.id === targetId) {
+                        link.label = value
                         return link
-                    })
-                    setLinks(newLinks)
-                }
+                    }
+                    return link
+                })
+                setLinks(newLinks)
                 inputBox.remove()
             })
         }
@@ -424,34 +419,28 @@ const Dfa2Regex = () => {
             }
         }
     })
-    useEffect(() => {
-        if (nodes[0]) {
-            setInitStates(nodes[0].id)
-        }
-    }, [nodes])
 
-    let listLinkToTransitionFunctionForDfa = (states) => {
+    let listLinkToTransitionFunction = (states) => {
         let transition_function = {}
         if (states) {
             states.forEach(state => {
+
                 transition_function[state] = {}
+
                 links.forEach(link => {
-                    let listAlphabets = link.label.split(',')
-                    listAlphabets.forEach(alpha => {
-                        transition_function[state][alpha] = ''
-                    })
+                    let alphabets = link.label
+                    transition_function[state][alphabets] = []
                 })
+
                 links.forEach(link => {
                     let sourceId = link.source.id
                     let alphabets = link.label
-                    let listAlphabets = link.label.split(',')
                     if (sourceId === state) {
                         let targetId = link.target.id
-                        listAlphabets.forEach(alpha => {
-                            if (!transition_function[state][alpha].includes(targetId)) {
-                                transition_function[state][alpha] = targetId
-                            }
-                        })
+
+                        if (!transition_function[state][alphabets].includes(targetId)) {
+                            transition_function[state][alphabets].push(targetId)
+                        }
                     }
                 })
             })
@@ -459,71 +448,121 @@ const Dfa2Regex = () => {
         return transition_function
     }
 
+    const getEpsilonClosure = (state, transition_function) => {
+        let closure_states = [state]
+        let state_stack = [state]
+        while (state_stack.length > 0) {
+            let current_state = state_stack.pop()
+            let readEpsilonToState = transition_function[current_state]['$']
+            if (readEpsilonToState.length > 0) {
+                readEpsilonToState.forEach(state => {
+                    if (!closure_states.includes(state)) {
+                        closure_states.push(state)
+                        state_stack.push(state)
+                    }
+                })
+            }
+        }
+        return closure_states
+    }
+    const transition_function_star = (state, alphabet, transition_function) => {
+        let epsilonClosures = getEpsilonClosure(state, transition_function)
+        let listStateClosureReadAlphabets = []
+        if (epsilonClosures.length) {
+            epsilonClosures.forEach(stateClosure => {
+                let stateClosureReadAlphabets = transition_function[stateClosure][alphabet]
+                if (stateClosureReadAlphabets.length) {
+                    stateClosureReadAlphabets.forEach(stateClosureReadAlphabet => {
+                        if (!listStateClosureReadAlphabets.includes(stateClosureReadAlphabet)) {
+                            listStateClosureReadAlphabets.push(stateClosureReadAlphabet)
+                        }
+                    })
+                }
+            })
+        }
+        return listStateClosureReadAlphabets
+    }
+
+    const transition_function_comma = (nfa) => {
+        let states = nfa.states
+        let transition_function = nfa.transition_function
+        let alphabets = nfa.alphabets
+        let nfaTransition = {}
+        states.forEach(state => {
+            nfaTransition[state] = {}
+            alphabets.forEach(alphabet => {
+                if (alphabet != '$') {
+                    nfaTransition[state][alphabet] = []
+                    let stateStars = transition_function_star(state, alphabet, transition_function)
+                    let transitionFinals = []
+                    if (stateStars.length) {
+                        stateStars.forEach(stateStar => {
+                            let epsilonClosureOfStateStar = getEpsilonClosure(stateStar, transition_function)
+                            if (epsilonClosureOfStateStar.length) {
+                                epsilonClosureOfStateStar.forEach(stateClosureStar => {
+                                    if (!transitionFinals.includes(stateClosureStar)) {
+                                        transitionFinals.push(stateClosureStar)
+                                    }
+                                })
+                            }
+                        })
+                    }
+                    nfaTransition[state][alphabet] = transitionFinals
+                }
+            })
+        })
+        return nfaTransition
+    }
     let handleSubmit = async () => {
+        // setShowLoader(true)
         let states = nodes.map(node => {
             return node.id
         })
-        states.push('phi')
         let alphabets = []
         if (links) {
             links.forEach(link => {
-                let listAlphabets = link.label.split(',')
-                listAlphabets.forEach(alpha => {
-                    if (!alphabets.includes(alpha) && alpha) {
-                        alphabets.push(alpha)
-                    }
-                })
+                if (!alphabets.includes(link.label) && link.label) {
+                    alphabets.push(link.label)
+                }
             })
         }
-        let transition_function = listLinkToTransitionFunctionForDfa(states)
-
-        let dfa = {
+        let transition_function = listLinkToTransitionFunction(states)
+        let nfa = {
             states: states,
             initial_state: initStates,
             final_states: finalStates,
             alphabets: alphabets,
-            transition_function: transition_function,
-            reachable_states: states,
-            final_reachable_states: finalStates,
+            transition_function: transition_function
         }
-        console.log(dfa)
-        let phi = {}
-        for (let key of dfa.alphabets) {
-            phi[key] = 'phi'
+
+        let nfaTransition = transition_function_comma(nfa)
+
+        let newAlphabets = alphabets.filter(alpha => {
+            return alpha != '$'
+        })
+
+        let nfaNoEpsilon = {
+            states: states,
+            initial_state: initStates,
+            final_states: finalStates,
+            alphabets: newAlphabets,
+            transition_function: nfaTransition
         }
-        dfa.transition_function.phi = phi
-        const removeNullDfa = (dfa) => {
-            let newDfa = dfa
-            for (let key in newDfa['transition_function']) {
-                let node = newDfa['transition_function'][key]
-                for (let alphabets in node) {
-                    if (node[alphabets] === '') {
-                        node[alphabets] = 'phi'
-                    }
-                }
-            }
-            return newDfa
-        }
-        let newDfa = removeNullDfa(dfa)
-        if (finalStates.length !== 0) {
-            setShowLoader(true)
-            let response = await api.dfa2regex(newDfa)
-            if (response.err) {
-                console.log(response)
-            } else {
-                let { regex } = response.data
-                setRegex(regex)
-            }
-            setShowLoader(false)
-        } else {
-            alert('Bạn chưa chọn trạng thái kết thúc')
-        }
+        setDataShowNfa(nfaNoEpsilon)
     }
+
+    const [showLoader, setShowLoader] = useState(false)
+
+    useEffect(() => {
+        if (nodes[0]) {
+            setInitStates(nodes[0].id)
+        }
+    }, [nodes])
 
     return (
         <div>
             <Header />
-            {
+            {/* {
                 showLoader &&
                 <div className={styles.loader}>
                     <div className={styles.backgroundLoader}></div>
@@ -542,24 +581,30 @@ const Dfa2Regex = () => {
                         />
                     </div>
                 </div>
-            }
-            <div> Dfa To Regex
-                <button onClick={handleSubmit}>submit</button>
-            </div>
-            <div>
-                Regex: {regex}
-            </div>
-            <div>
+            } */}
+
+            <div className={styles.mode}>
+                <label>Mode:</label>
                 <button className={mode === 0 ? styles.selectMode : ''} onClick={() => { setMode(0) }}>force</button>
                 <button className={mode === 1 ? styles.selectMode : ''} onClick={() => { setMode(1) }}>draw</button>
                 <button className={mode === 2 ? styles.selectMode : ''} onClick={() => { setMode(2) }}>delete</button>
                 <button className={mode === 3 ? styles.selectMode : ''} onClick={() => { setMode(3) }}>edit</button>
+                <button className={styles.convertButton} onClick={handleSubmit}>convert</button>
+                {/* <button className={styles.convertButton} >Instruction</button> */}
             </div>
             <div id='parentSvg'>
                 {/* <svg id='myCanvas' width='600' height='600'></svg> */}
+            </div>
+            <div id='parentSvgDrawNfa'>
+
+                {
+                    dataShowNfa ? <DrawNfa
+                        dataShowNfa={dataShowNfa}
+                    />
+                        : ''}
             </div>
         </div >
     )
 }
 
-export default Dfa2Regex;
+export default NfaEpsilon2Nfa;
