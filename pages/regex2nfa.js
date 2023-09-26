@@ -13,6 +13,7 @@ import { Oval } from "react-loader-spinner";
 import Header from "@/component/header";
 import { useDispatch } from "react-redux";
 import headerActions from "@/redux/action/headerActions";
+import Loader from "@/component/Loader";
 
 const Regex2Dfa = () => {
 
@@ -39,8 +40,12 @@ const Regex2Dfa = () => {
             type: headerActions.SET_SELECT_HEADER,
             headerSelect: 'regex2nfa'
         })
-        setWidthSvg(window.innerWidth - 50)
-        setHeightSvg(window.innerHeight - 200)
+        let mainElement = document.querySelector(`.${styles.regex2dfa}`)
+        if (mainElement) {
+            setWidthSvg(mainElement.clientWidth)
+            setHeightSvg(window.innerHeight - 200)
+        }
+
         let simulation = null
         if (nodes && states && links) {
             select('#parentSvg').append('svg')
@@ -52,7 +57,6 @@ const Regex2Dfa = () => {
 
             // Tạo SVG
             let svg = select("#myCanvas");
-
 
             //  Vẽ các liên kết
             let link = svg.selectAll(".link")
@@ -68,7 +72,7 @@ const Regex2Dfa = () => {
                 .enter().append("marker")
                 .attr("id", d => d)
                 .attr("viewBox", "0 -5 10 10")
-                .attr("refX", 30) // Vị trí của mũi tên
+                .attr("refX", radiusCircle) // Vị trí của mũi tên
                 .attr("refY", 0)
                 .attr("markerWidth", 5)
                 .attr("markerHeight", 5)
@@ -222,27 +226,8 @@ const Regex2Dfa = () => {
             .on("end", dragEnded);
     }
 
-    let handleForce = () => {
-        setLinkLength(linkLength + 50)
-    }
-
-    let handleDraw = () => {
-        setLinkLength(linkLength - 50)
-    }
-    let handleInputLinkLength = (e) => {
-        setLinkLength(e.target.value)
-    }
-    let handleInputRadiusCircle = (e) => {
-        setRadiusCircle(e.target.value)
-    }
-
     let handleChangeInputRegex = (e) => {
         setRegex(e.target.value)
-    }
-
-    let handleShowDFA = async () => {
-        let response = await api.nfa2dfa(nfa)
-        console.log(response)
     }
 
     let handleConvertRegex2Nfa = async () => {
@@ -275,73 +260,46 @@ const Regex2Dfa = () => {
         }
     }
 
+    useEffect(() => {
+        dispatch({
+            type: headerActions.SET_TITLE_HEADER,
+            title: 'Regex to NFA'
+        })
+    }, [])
+
     return (
-        <div className={styles.regex2dfa}>
+        <>
             <Header />
-            {
-                showLoader &&
-                <div className={styles.loader}>
-                    <div className={styles.backgroundLoader}></div>
-                    <div className={styles.loaderContainer}>
-                        <Oval
-                            height={80}
-                            width={80}
-                            color="#4fa94d"
-                            wrapperStyle={{}}
-                            wrapperClass="Loader"
-                            visible={true}
-                            ariaLabel='oval-loading'
-                            secondaryColor="#4fa94d"
-                            strokeWidth={2}
-                            strokeWidthSecondary={2}
-                        />
+            <div className={styles.regex2dfa}>
+                {
+                    showLoader &&
+                    <Loader />
+                }
+                <div>
+                    <div className={styles.inputData}>
+                        <div className={styles.inputDataTop}>
+                            <label>Regex: </label>
+                            <input
+                                type="text"
+                                value={regex}
+                                onChange={(e) => { handleChangeInputRegex(e) }}
+                                placeholder="01*+1"
+                            />
+                        </div>
+                        <div className={styles.inputDataBottom}>
+                            <button
+                                onClick={handleConvertRegex2Nfa} >
+                                Convert
+                            </button>
+                        </div>
                     </div>
                 </div>
-            }
-            <div>
-                {/* <button onClick={handleForce}>force</button> */}
-                {/* <button onClick={handleShowDFA}>console.log DFA</button> */}
-                <div className={styles.inputData}>
-                    <div className={styles.inputDataTop}>
-                        <label>Regex: </label>
-                        <input
-                            type="text"
-                            value={regex}
-                            onChange={(e) => { handleChangeInputRegex(e) }}
-                        />
-                    </div>
-                    <div className={styles.inputDataBottom}>
-                        <button
-                            onClick={handleConvertRegex2Nfa} >
-                            Convert
-                        </button>
-                    </div>
+                <div id="parentSvg">
+                    <svg className={styles.svgNfa} id="myCanvas" width={widthSvg} height={heightSvg}></svg>
                 </div>
-                {/* <div>
-                    <label>Edge length:</label>
-                    <input
-                        type="number" step='10'
-                        value={linkLength}
-                        onChange={(e) => { handleInputLinkLength(e) }}
-                        min={50}
-                        max={300}
-                    ></input>
-                </div> */}
-                {/* <div>
-                    <label>circle radius:</label>
-                    <input
-                        type="number" step='1'
-                        value={radiusCircle}
-                        onChange={(e) => { handleInputRadiusCircle(e) }}
-                        min={15}
-                        max={40}
-                    ></input>
-                </div> */}
             </div>
-            <div id="parentSvg">
-                <svg className='MySvg' id="myCanvas" width={widthSvg} height={heightSvg}></svg>
-            </div>
-        </div>
+
+        </>
     )
 }
 

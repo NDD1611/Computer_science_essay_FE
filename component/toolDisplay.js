@@ -1,38 +1,20 @@
-
 import { useEffect, useState } from "react";
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY } from "d3";
 import {
-    evaluateOfLinkLabelX, evaluateOfLinkLabelY, progressOneNode,
-    pathLink, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
-} from '../utils/commonFunctions'
+    select, forceSimulation, forceLink, forceManyBody, forceCenter,
+    selectAll, pointer, drag, forceX, forceY
+} from "d3";
+import { checkLinkTrungNhau, findVectors, pathLink, evaluateOfLinkLabelX, evaluateOfLinkLabelY } from '../utils/commonFunctions'
 
-import styles from './drawNfa.module.scss'
-
-const DrawNfa = ({ dataShowNfa }) => {
+const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle }) => {
     const [lengthDistanceEdge, setLengthDistanceEdge] = useState(50)
-    const [linkLength, setLinkLength] = useState(200)
-    const [radiusCircle, setRadiusCircle] = useState(30)
-
-    const [data, setData] = useState()
-    const [widthSvg, setWidthSvg] = useState(600)
-    const [heightSvg, setHeightSvg] = useState(600)
     const [nodes, setNodes] = useState()
-    const [states, setStates] = useState()
     const [links, setLinks] = useState()
+    const [finalState, setFinalState] = useState()
 
     useEffect(() => {
-        let data = dataShowNfa
-        setData(data)
-        setStates(data.states)
-        let newState = data.states.map(((state, index) => {
-            let newState = {
-                id: state,
-                label: index.toString()
-            }
-            return newState
-        }))
-        setNodes(newState)
-        let links = transition_function(data.transition_function)
+        let { final_states, links, states } = data
+
+        // xu ly 2 link trung nhau => label bi chong len nhau
         for (let i = 0; i < links.length - 1; i++) {
             let link1 = links[i]
             for (let j = i + 1; j < links.length; j++) {
@@ -46,24 +28,32 @@ const DrawNfa = ({ dataShowNfa }) => {
                 }
             }
         }
+
+        let nodes = data.states.map(((state, index) => {
+            let newState = {
+                id: state,
+                label: index.toString()
+            }
+            return newState
+        }))
+
         setLinks(links)
-    }, [dataShowNfa])
+        setNodes(nodes)
+        setFinalState(final_states)
+    }, [data])
 
     useEffect(() => {
-
-        setWidthSvg(window.innerWidth - 50)
-        setHeightSvg(window.innerHeight - 200)
         let simulation = null
-        if (nodes && states && links) {
-            select('#parentSvgDrawNfa').append('svg')
-                .attr('id', 'myCanvasDrawNfa')
+        if (nodes && links) {
+            select('#canvasDisplay').append('svg')
+                .attr('id', 'canvasDrawDfa')
                 .attr('width', widthSvg)
                 .attr('height', heightSvg)
 
             let listLinkTrung = checkLinkTrungNhau(links)
 
             // Tạo SVG
-            let svg = select("#myCanvasDrawNfa");
+            let svg = select("#canvasDrawDfa");
 
             //  Vẽ các liên kết
             let link = svg.selectAll(".link")
@@ -72,17 +62,16 @@ const DrawNfa = ({ dataShowNfa }) => {
                 .attr("class", "link")
                 .attr("marker-end", "url(#arrow)") // Thêm mũi tên
 
-
             //  Vẽ các mũi tên
             svg.append("defs").selectAll("marker")
                 .data(["arrow"]) // Tên mũi tên
                 .enter().append("marker")
                 .attr("id", d => d)
                 .attr("viewBox", "0 -5 10 10")
-                .attr("refX", 30) // Vị trí của mũi tên
+                .attr("refX", radiusCircle) // Vị trí của mũi tên
                 .attr("refY", 0)
-                .attr("markerWidth", 5)
-                .attr("markerHeight", 5)
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 6)
                 .attr("orient", "auto")
                 .append("path")
                 .attr("d", "M0,-5L10,0L0,5");
@@ -102,7 +91,6 @@ const DrawNfa = ({ dataShowNfa }) => {
                 .attr("r", radiusCircle)
                 .attr('id', d => d.id)
 
-
             //  Vẽ văn bản trong các node
             let nodeLabels = svg.selectAll(".node-label")
                 .data(nodes)
@@ -110,13 +98,12 @@ const DrawNfa = ({ dataShowNfa }) => {
                 .attr("class", "node-label")
                 .attr("dy", 5) // Vị trí theo trục y
                 .style("text-anchor", "middle")
-                .text(d => "q" + d.label);
+                .text(d => d.label);
 
             simulation = forceSimulation(nodes)
                 .force("link", forceLink(links).id(d => d.id).distance(linkLength))
                 .force("center", forceCenter(svg.attr("width") / 2, svg.attr("height") / 2))
                 .force("charge", forceManyBody().strength(-50))
-
 
             // // Thiết lập vị trí ban đầu và cập nhật vị trí sau mỗi bước mô phỏng
             simulation.on("tick", () => {
@@ -188,25 +175,18 @@ const DrawNfa = ({ dataShowNfa }) => {
 
             // Kích hoạt tính năng kéo thả cho các node
             node.call(dragCustom(simulation));
-            node.on('click', (event) => {
-                console.log(event.target)
-            })
 
-            if (data.final_states) {
-                data.final_states.forEach(finalId => {
+            if (finalState) {
+                finalState.forEach(finalId => {
                     node.filter(d => d.id === finalId)
                         .classed("final-border", true);
                 })
             }
-            node.filter(d => d.id === data.initial_state)
-                .classed("start-border", true);
-
         }
 
         return () => {
-            select('#myCanvasDrawNfa').remove()
+            select('#canvasDrawDfa').remove()
         }
-        // end effect
     })
 
     let dragCustom = (simulation) => {
@@ -233,27 +213,13 @@ const DrawNfa = ({ dataShowNfa }) => {
             .on("end", dragEnded);
     }
 
-    let handleForce = () => {
-        setLinkLength(linkLength + 50)
-    }
-
-    let handleDraw = () => {
-        setLinkLength(linkLength - 50)
-    }
-    let handleInputLinkLength = (e) => {
-        setLinkLength(e.target.value)
-    }
-    let handleInputRadiusCircle = (e) => {
-        setRadiusCircle(e.target.value)
-    }
-
     return (
-        <div className={styles.regex2dfa}>
-            <div id="parentSvgDrawNfa">
-                {/* <svg className='MySvgDraNfa' id="myCanvasDrawNfa" width={widthSvg} height={heightSvg}></svg> */}
+        <div >
+            <div id='canvasDisplay'>
+                {/* <svg id="canvasDrawDfa" width={widthSvg} height={heightSvg}></svg> */}
             </div>
         </div>
     )
 }
 
-export default DrawNfa;
+export default ToolDisplay;

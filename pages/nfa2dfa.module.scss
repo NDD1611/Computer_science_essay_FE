@@ -1,46 +1,37 @@
-.selectMode {
-    background-color: #000;
-    color: #fff;
-}
-
-.svgAndInstruction {
+.nfaEpsilonToNfa {
     display: flex;
-}
 
-.mode {
+    .mode {
+        padding-top: 10px;
 
-    padding-bottom: 10px;
+        .selectMode {
+            background-color: #000;
+            color: #fff;
+        }
 
-    .convertButton {
-        margin-left: 50px;
-    }
-}
-
-.loader {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
-
-    .backgroundLoader {
-        background-color: #000;
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        z-index: 1;
-        opacity: 0.2;
-    }
-
-    .loaderContainer {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        z-index: 99;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        svg {
+        button {
+            cursor: pointer;
             border: none;
+            // margin-right: 5px;
+            padding: 5px 10px;
+        }
+    }
+
+    .left {
+        padding: 10px;
+        flex: 2;
+    }
+
+    .right {
+        flex: 1;
+
+        .convertButton {
+
+            border: none;
+            color: #fff;
+            border-radius: 5px;
+            background-color: #202e3e;
+            padding: 7px 27px;
         }
     }
 }

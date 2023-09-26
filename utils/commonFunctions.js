@@ -35,6 +35,19 @@ export let transition_function = (transitionDatas) => {
     }
     return listPathAllNodes
 }
+export let transitionFunctionToLinks = (transitionDatas) => {
+    let transitionKeys = Object.keys(transitionDatas)
+    let listPathAllNodes = []
+
+    for (let key of transitionKeys) {
+        let pathOfOneNode = progressOneNode(key, transitionDatas[key])
+        listPathAllNodes = [
+            ...listPathAllNodes,
+            ...pathOfOneNode
+        ]
+    }
+    return listPathAllNodes
+}
 
 export let checkLinkTrungNhau = (links) => {
     let listLinkTrungNhauTheoCap = []
@@ -156,12 +169,9 @@ export let evaluateOfLinkLabelY = (d, heightSvg, radiusCircle, lengthDistanceEdg
 
 export let pathLink = (d, widthSvg, heightSvg, radiusCircle, lengthDistanceEdge, listLinkTrung) => {
     let vectors = findVectors(d.source.x, d.source.y, d.target.x, d.target.y)
-
     let percentEdge = vectors.length / lengthDistanceEdge
-
     let pointCenterX = (d.source.x + d.target.x) / 2
     let pointCenterY = (d.source.y + d.target.y) / 2
-
     let pointControlX = pointCenterX
     let pointControlY = pointCenterY
     for (let i = 0; i < listLinkTrung.length; i++) {
@@ -171,7 +181,6 @@ export let pathLink = (d, widthSvg, heightSvg, radiusCircle, lengthDistanceEdge,
             pointControlY = pointCenterY + (vectors.vtpt.y / percentEdge)
         }
     }
-
     let sourceX = d.source.x
     let sourceY = d.source.y
     let targetX = d.target.x
@@ -229,4 +238,71 @@ export let pathLink = (d, widthSvg, heightSvg, radiusCircle, lengthDistanceEdge,
     if (pointControlX && pointControlY) {
         return `M ${sourceX} ${sourceY} C ${pointControlX} ${pointControlY}, ${pointControlX} ${pointControlY}, ${targetX} ${targetY}`
     }
+}
+
+export let listLinkToTransitionFunctionForNFA = (states, links) => {
+    let transition_function = {}
+    if (states) {
+        states.forEach(state => {
+
+            transition_function[state] = {}
+
+            links.forEach(link => {
+                let alphabets = link.label
+                transition_function[state][alphabets] = []
+            })
+
+            links.forEach(link => {
+                let sourceId = link.source.id
+                let alphabets = link.label
+                if (sourceId === state) {
+                    let targetId = link.target.id
+
+                    if (!transition_function[state][alphabets].includes(targetId)) {
+                        transition_function[state][alphabets].push(targetId)
+                    }
+                }
+            })
+        })
+    }
+    return transition_function
+}
+
+
+export const getEpsilonClosure = (state, transition_function) => {
+    if (state && transition_function) {
+        let closure_states = [state]
+        let state_stack = [state]
+        while (state_stack.length > 0) {
+            let current_state = state_stack.pop()
+            let readEpsilonToState = transition_function[current_state]['$']
+            if (readEpsilonToState.length > 0) {
+                readEpsilonToState.forEach(state => {
+                    if (!closure_states.includes(state)) {
+                        closure_states.push(state)
+                        state_stack.push(state)
+                    }
+                })
+            }
+        }
+        return closure_states
+    }
+}
+
+export const transition_function_star = (state, alphabet, transition_function) => {
+    let epsilonClosures = getEpsilonClosure(state, transition_function)
+    let listStateClosureReadAlphabets = []
+    if (epsilonClosures.length) {
+        epsilonClosures.forEach(stateClosure => {
+            let stateClosureReadAlphabets = transition_function[stateClosure][alphabet]
+            if (stateClosureReadAlphabets.length) {
+                stateClosureReadAlphabets.forEach(stateClosureReadAlphabet => {
+                    if (!listStateClosureReadAlphabets.includes(stateClosureReadAlphabet)) {
+                        listStateClosureReadAlphabets.push(stateClosureReadAlphabet)
+                    }
+                })
+            }
+        })
+    }
+    return listStateClosureReadAlphabets
 }

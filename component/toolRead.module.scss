@@ -1,0 +1,49 @@
+.toolRead {
+    // margin-top: 10px;
+    // width: 100%;
+    padding: 10px;
+
+    .marginLeft {
+        margin-left: 20px;
+    }
+
+    .labelString {
+        padding-right: 10px;
+    }
+
+    .input {
+        border: none;
+        outline: none;
+        border-bottom: 1px solid #202e3e;
+        width: 100%;
+    }
+
+    .arrayString {
+        margin-top: 10px;
+    }
+
+    .indexStringCurrent {
+        background-color: rgb(104, 230, 104);
+    }
+
+    .listBtns {
+        .iconMarginRight {
+            margin-right: 10px;
+        }
+
+        .iconMarginLeft {
+            margin-left: 10px;
+        }
+
+        button {
+            padding: 5px 10px;
+            background-color: #202e3e;
+            color: #fff;
+            margin: 5px;
+
+            svg {
+                border: none !important;
+            }
+        }
+    }
+}

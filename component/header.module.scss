@@ -1,33 +1,119 @@
 .header {
+    height: 50px;
+    background-color: #202e3e;
+    position: relative;
     display: flex;
-    gap: 50px;
-    padding: 20px;
-    width: 100%;
 
-    .headerLeft {
-        font-size: 40px;
+    svg {
+        border: none;
     }
 
-    .headerRight {
+    .title {
         display: flex;
-        gap: 20px;
-        justify-content: space-around;
         align-items: center;
+        justify-content: center;
+        color: #fff;
+        width: calc(100% - 50px);
+    }
 
-        .select {
-            background-color: #ccc;
+    .bars {
+        color: #fff;
+        width: 50px;
+        height: 50px;
+        font-size: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            background-color: #364251;
         }
 
-        .link {
-            border-radius: 5px;
-            padding: 10px 20px;
-            text-decoration: none;
-            color: #000;
-            font-size: 20px;
+    }
+
+    .containerNavBar {
+        color: #fff;
+        width: 250px;
+        height: calc(100vh - 50px);
+        background-color: #2b3847;
+        position: absolute;
+        top: 50px;
+        left: -250px;
+
+        .groupChoose {
+            margin-right: 30px;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            font-size: 18px;
 
             &:hover {
-                background-color: #ccc;
+                background-color: #364251;
+            }
+
+            .groupIcon {
+                font-size: 12px;
+                padding-right: 7px;
             }
         }
+
+        .listLinks {
+            margin-left: 30px;
+
+            .linkContainer {
+                font-size: 14px;
+                padding: 10px 0;
+                padding-left: 20px;
+                cursor: pointer;
+
+                &:hover {
+                    background-color: #364251;
+                }
+            }
+        }
+    }
+
+    .showNavBar {
+        animation: show 0.2s linear forwards;
+    }
+
+    .hideNavBar {
+        animation: hide 0.2s linear forwards;
+    }
+
+    .hideLink {
+        display: none !important;
+    }
+}
+
+@keyframes example {
+    from {
+        background-color: red;
+    }
+
+    to {
+        background-color: yellow;
+    }
+}
+
+@keyframes hide {
+
+    from {
+        left: 0px;
+    }
+
+    to {
+        left: -250px;
+    }
+}
+
+@keyframes show {
+
+    from {
+        left: -250px;
+    }
+
+    to {
+        left: 0px;
     }
 }

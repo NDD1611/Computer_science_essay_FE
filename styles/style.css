@@ -1,3 +1,8 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
 #myCanvas,
 svg {
     border: 1px solid #000;
@@ -8,6 +13,10 @@ svg {
     stroke-width: 3;
     fill: none;
     cursor: pointer;
+}
+
+.link:hover {
+    stroke: red;
 }
 
 .node {
@@ -31,10 +40,15 @@ svg {
 
 .start-border {
     stroke: green;
-    stroke-width: 4;
+    stroke-width: 4px;
 }
 
 .lineRemove {
     stroke: #ccc;
     stroke-width: 1px;
+}
+
+.node-fill-background {
+    fill: #68a3e6;
+    color: #fff;
 }
