@@ -20,15 +20,31 @@ const ToolRead = ({
 
     const handleChangeInput = (e) => {
         let string = e.target.value
-        setText(string)
         let array = string.split('')
-        setArrayString(array)
+        let check = true
+        array.forEach(char => {
+            if (automata && automata.alphabets) {
+                if (!automata.alphabets.includes(char)) {
+                    alert(`Alphabets does not include the letter ${char}.`)
+                    check = false
+                }
+            }
+        })
+        if (check) {
+            setText(string)
+            setArrayString(array)
+        }
+        setShowAccept(false)
+        setShowReject(true)
+        setStart(false)
     }
     const handleStart = () => {
+        console.log(automata)
         if (typeAutomata == 'nfaEpsilon') {
             let epsilonClosure = getEpsilonClosure(automata.initial_state, automata.transition_function)
-            console.log(epsilonClosure)
             setNodeAfterRead(epsilonClosure)
+        } else if (typeAutomata == 'dfa') {
+            setNodeAfterRead([automata.initial_state])
         }
 
         setStart(true)
@@ -66,6 +82,21 @@ const ToolRead = ({
                 }
             }
             setNodeAfterRead(states)
+        } else if (typeAutomata == 'dfa') {
+            let states = stringAcceptByDfa(stringRead, automata)
+            if (text.length === stringRead.length) {
+                if (states) {
+                    let check = false
+                    states.forEach(state => {
+                        if (automata.final_states && automata.final_states.includes(state)) {
+                            check = true
+                        }
+                    })
+                    setShowAccept(check)
+                    setShowReject(check)
+                }
+            }
+            setNodeAfterRead(states)
         }
     }
 
@@ -91,6 +122,25 @@ const ToolRead = ({
         }
         return preResult
     }
+
+    const stringAcceptByDfa = (string, dfa) => {
+        let preResult = [dfa.initial_state]
+        for (let i = 0; i < string.length; i++) {
+            let alphabet = string[i]
+            if (preResult) {
+                let listTotal = []
+                preResult.forEach(state => {
+                    let stateAfterReadAlphabet = dfa.transition_function[state][alphabet]
+                    if (stateAfterReadAlphabet != 'phi') {
+                        listTotal = [...listTotal, stateAfterReadAlphabet]
+                    }
+                })
+                preResult = [...listTotal]
+            }
+        }
+        return preResult
+    }
+
     useEffect(() => {
         if (typeAutomata == 'nfaEpsilon') {
             let states = stringAcceptByNfaEpsilon(stringRead, automata)
@@ -99,6 +149,21 @@ const ToolRead = ({
                     let check = false
                     states.forEach(state => {
                         if (automata.final_states.includes(state)) {
+                            check = true
+                        }
+                    })
+                    setShowAccept(check)
+                    setShowReject(check)
+                }
+            }
+            setNodeAfterRead(states)
+        } else if (typeAutomata == 'dfa') {
+            let states = stringAcceptByDfa(stringRead, automata)
+            if (text.length === stringRead.length) {
+                if (states) {
+                    let check = false
+                    states.forEach(state => {
+                        if (automata.final_states && automata.final_states.includes(state)) {
                             check = true
                         }
                     })
@@ -120,14 +185,14 @@ const ToolRead = ({
             <div className={styles.arrayString}>
                 {
                     arrayString.map((character, index) => {
-                        return <span className={indexString == index && styles.indexStringCurrent}
+                        return <span className={indexString == index ? styles.indexStringCurrent : ''}
                             key={index}>
                             {character}
                         </span>
                     })
                 }
-                {showAccept && <span className={styles.marginLeft}>true</span>}
-                {!showReject && <span className={styles.marginLeft}>false</span>}
+                {showAccept && start && <span className={styles.marginLeft}>true</span>}
+                {!showReject && start && <span className={styles.marginLeft}>false</span>}
             </div>
             <div className={styles.listBtns}>
                 {
@@ -145,18 +210,24 @@ const ToolRead = ({
                         Stop
                     </button>
                 }
-                <button onClick={handleSepback}>
-                    <FontAwesomeIcon className={styles.iconMarginRight} icon={faBackward} />
-                    Step backward
-                </button>
-                <button
-                    onClick={handleReadNext}
-                >Read next
-                    <FontAwesomeIcon className={styles.iconMarginLeft} icon={faForward} />
-                </button>
-                <button
-                    onClick={handleReadAll}
-                >Read all</button>
+                {
+                    start && <button onClick={handleSepback}>
+                        <FontAwesomeIcon className={styles.iconMarginRight} icon={faBackward} />
+                        Step backward
+                    </button>
+                }
+                {
+                    start && <button
+                        onClick={handleReadNext}
+                    >Read next
+                        <FontAwesomeIcon className={styles.iconMarginLeft} icon={faForward} />
+                    </button>
+                }
+                {
+                    start && <button
+                        onClick={handleReadAll}
+                    >Read all</button>
+                }
             </div>
         </div >
     )

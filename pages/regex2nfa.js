@@ -2,7 +2,7 @@
 import { use, useEffect, useState } from "react";
 // import { data } from '../data'
 import './regex2nfa.module.scss'
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY } from "d3";
+import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY, link } from "d3";
 import {
     evaluateOfLinkLabelX, evaluateOfLinkLabelY, progressOneNode, pathLink, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
 } from '../utils/commonFunctions'
@@ -32,7 +32,6 @@ const Regex2Dfa = () => {
     const [nfa, setNfa] = useState()
     const [showLoader, setShowLoader] = useState(false)
 
-    const [dataShowDfa, setDataShowDfa] = useState(false)
     const dispatch = useDispatch()
 
     useEffect(() => {
@@ -267,6 +266,19 @@ const Regex2Dfa = () => {
         })
     }, [])
 
+    const copyData = () => {
+        console.log(data)
+        console.log(nodes)
+        console.log(links)
+        let dataCopy = {
+            data: data,
+            nodes: nodes,
+            links: links,
+            states: states
+        }
+        localStorage.setItem('dataNfaEpsilon', JSON.stringify(dataCopy))
+    }
+
     return (
         <>
             <Header />
@@ -291,6 +303,10 @@ const Regex2Dfa = () => {
                                 onClick={handleConvertRegex2Nfa} >
                                 Convert
                             </button>
+                            {/* <button
+                                onClick={copyData} >
+                                Copy
+                            </button> */}
                         </div>
                     </div>
                 </div>

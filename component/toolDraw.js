@@ -187,7 +187,8 @@ const ToolDraw = ({ widthSvg,
             .classed("start-border", true);
         node.filter(d => nodeAfterRead.includes(d.id))
             .classed("node-fill-background", true);
-
+        node.filter(d => (d.id === initStates && finalStates.includes(d.id)))
+            .classed("node-fill-start-end", true);
 
 
         return () => {
@@ -286,7 +287,6 @@ const ToolDraw = ({ widthSvg,
     }
 
     let handleClickSvg = (e) => {
-        console.log(mode, subMode)
         if (mode === 1 && subMode === '0') {
             handleAddNode(e)
         }
@@ -299,6 +299,7 @@ const ToolDraw = ({ widthSvg,
     let handleAddLink = (e) => {
         if (linkFromId && e.target.id) {
             let newLinks = {
+                label: '',
                 source: linkFromId,
                 target: e.target.id
             }
@@ -370,7 +371,7 @@ const ToolDraw = ({ widthSvg,
                 circle.addEventListener('dblclick', (e) => {
                     if (mode === 3) {
                         let nodeId = e.target.id
-                        if (nodeId != initStates) {
+                        if (nodeId) {
                             let check = finalStates.includes(nodeId)
                             if (check) {
                                 let newFinalStates = finalStates.filter(state => {
@@ -417,71 +418,6 @@ const ToolDraw = ({ widthSvg,
             }
         }
     })
-
-    let listLinkToTransitionFunction = (states) => {
-        let transition_function = {}
-        if (states) {
-            states.forEach(state => {
-
-                transition_function[state] = {}
-
-                links.forEach(link => {
-                    let alphabets = link.label
-                    transition_function[state][alphabets] = []
-                })
-
-                links.forEach(link => {
-                    let sourceId = link.source.id
-                    let alphabets = link.label
-                    if (sourceId === state) {
-                        let targetId = link.target.id
-
-                        if (!transition_function[state][alphabets].includes(targetId)) {
-                            transition_function[state][alphabets].push(targetId)
-                        }
-                    }
-                })
-            })
-        }
-        return transition_function
-    }
-
-    let handleSubmit = async () => {
-        setShowLoader(true)
-        let states = nodes.map(node => {
-            return node.id
-        })
-
-        let alphabets = []
-
-        if (links) {
-            links.forEach(link => {
-                if (!alphabets.includes(link.label) && link.label) {
-                    alphabets.push(link.label)
-                }
-            })
-        }
-        let transition_function = listLinkToTransitionFunction(states)
-
-        let nfa = {
-            states: states,
-            initial_state: initStates,
-            final_states: finalStates,
-            alphabets: alphabets,
-            transition_function: transition_function
-        }
-        let response = await api.nfa2dfa(nfa)
-        console.log('da xong')
-        if (response.err) {
-            console.log(response)
-        } else {
-            let { dfa, dataShowDfa } = response.data
-            setDataShowDfa(dataShowDfa)
-            setDfa(dfa)
-        }
-        setShowLoader(false)
-    }
-    const [showLoader, setShowLoader] = useState(false)
 
     useEffect(() => {
         if (nodes[0]) {

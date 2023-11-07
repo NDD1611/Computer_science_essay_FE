@@ -17,7 +17,8 @@ const Header = () => {
     const router = useRouter()
     let id = null
 
-    const handleClickBarIcon = () => {
+    const handleClickBarIcon = (e) => {
+        e.stopPropagation()
         let leftShowStart = -250
         let leftHideStart = 0
         let navBarElement = document.querySelector('.' + styles.containerNavBar)

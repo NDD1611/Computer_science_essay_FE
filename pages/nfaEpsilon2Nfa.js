@@ -162,6 +162,30 @@ const NfaEpsilon2Nfa = () => {
         }
     }, [])
     const [nodeAfterRead, setNodeAfterRead] = useState([])
+
+    const copyData = () => {
+        console.log('copy')
+    }
+    const pasteData = () => {
+        let nfaEpsilon = JSON.parse(localStorage.getItem('dataNfaEpsilon'))
+        console.log(nfaEpsilon)
+
+        if (nfaEpsilon) {
+            let newLinks = nfaEpsilon.links.map(link => {
+                let newLink = {
+                    index: link.index,
+                    label: link.label == 'ε' ? '$' : link.label,
+                    source: link.source.id,
+                    target: link.target.id
+                }
+                return newLink
+            })
+            setLinks(newLinks)
+            setNodes(nfaEpsilon.nodes)
+            setFinalStates(nfaEpsilon.data.final_states)
+            setInitStates(nfaEpsilon.data.initial_state)
+        }
+    }
     return (
         <>
             <Header />
@@ -214,6 +238,12 @@ const NfaEpsilon2Nfa = () => {
                     <div>
                         <button className={styles.convertButton} onClick={handleSubmit}>convert</button>
                     </div>
+                    {/* <div>
+                        <button className={styles.convertButton} onClick={copyData}>Copy</button>
+                    </div>
+                    <div>
+                        <button className={styles.convertButton} onClick={pasteData}>Paste</button>
+                    </div> */}
                     <div>
                         <ToolRead
                             automata={nfa}

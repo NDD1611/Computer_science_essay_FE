@@ -1,13 +1,7 @@
 
-import styles from './nfa2dfa.module.scss'
-import { use, useEffect, useState } from 'react';
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY, dsvFormat } from "d3";
-import {
-    evaluateOfLinkLabelX, evaluateOfLinkLabelY, pathLink, checkLinkTrungNhau, findVectors
-} from '../utils/commonFunctions'
-import { v4 as uuidv4 } from 'uuid';
+import styles from './dfa2regex.module.scss'
+import { useEffect, useState } from 'react';
 import api from '@/api';
-import { Oval } from 'react-loader-spinner'
 import Header from '@/component/header';
 import { useDispatch } from 'react-redux';
 import headerActions from '@/redux/action/headerActions';
@@ -17,6 +11,7 @@ import IntroduceDraw from '@/component/introduceDraw';
 import IntroduceDelete from '@/component/introduceDelete';
 import IntroduceEdit from '@/component/introduceEdit';
 import ToolDraw from '@/component/toolDraw';
+import ToolRead from '@/component/toolRead';
 
 const Dfa2Regex = () => {
     const [mode, setMode] = useState(0) // 0: force, 1: draw, 2: delete, 3: edit
@@ -29,6 +24,8 @@ const Dfa2Regex = () => {
     const [finalStates, setFinalStates] = useState([])
     const [initStates, setInitStates] = useState('')
     const [regex, setRegex] = useState('')
+    const [nodeAfterRead, setNodeAfterRead] = useState([])
+    const [dfa, setDfa] = useState({})
     const [showLoader, setShowLoader] = useState(false)
     const dispatch = useDispatch()
 
@@ -37,37 +34,26 @@ const Dfa2Regex = () => {
             setInitStates(nodes[0].id)
         }
     }, [nodes])
+    useEffect(() => {
 
-    let listLinkToTransitionFunctionForDfa = (states) => {
-        let transition_function = {}
-        if (states) {
-            states.forEach(state => {
-                transition_function[state] = {}
-                links.forEach(link => {
-                    let listAlphabets = link.label.split(',')
-                    listAlphabets.forEach(alpha => {
-                        transition_function[state][alpha] = ''
-                    })
-                })
-                links.forEach(link => {
-                    let sourceId = link.source.id
-                    let alphabets = link.label
-                    let listAlphabets = link.label.split(',')
-                    if (sourceId === state) {
-                        let targetId = link.target.id
-                        listAlphabets.forEach(alpha => {
-                            if (!transition_function[state][alpha].includes(targetId)) {
-                                transition_function[state][alpha] = targetId
-                            }
-                        })
-                    }
-                })
-            })
+        // check node read one alphabet for many link
+        console.log(links, '====')
+        for (let i = 0; i < links.length - 1; i++) {
+            let link1 = links[i]
+            for (let j = i + 1; j < links.length; j++) {
+                let link2 = links[j]
+                if (link1.source.id === link2.source.id
+                    && link1.label === link2.label
+                    && link1.label != ''
+                    && link2.label != '') {
+                    alert(`Symbol ${link2.label} has transitioned from state ${link1.source.label}.`)
+                    link2.label = ''
+                    link1.label = ''
+                }
+            }
         }
-        return transition_function
-    }
 
-    let handleSubmit = async () => {
+
         let states = nodes.map(node => {
             return node.id
         })
@@ -75,12 +61,16 @@ const Dfa2Regex = () => {
         let alphabets = []
         if (links) {
             links.forEach(link => {
-                let listAlphabets = link.label.split(',')
-                listAlphabets.forEach(alpha => {
-                    if (!alphabets.includes(alpha) && alpha) {
-                        alphabets.push(alpha)
+                if (link.label) {
+                    let listAlphabets = link.label.split(',')
+                    if (listAlphabets) {
+                        listAlphabets.forEach(alpha => {
+                            if (!alphabets.includes(alpha) && alpha) {
+                                alphabets.push(alpha)
+                            }
+                        })
                     }
-                })
+                }
             })
         }
         let transition_function = listLinkToTransitionFunctionForDfa(states)
@@ -94,7 +84,6 @@ const Dfa2Regex = () => {
             reachable_states: states,
             final_reachable_states: finalStates,
         }
-        console.log(dfa)
         let phi = {}
         for (let key of dfa.alphabets) {
             phi[key] = 'phi'
@@ -113,9 +102,60 @@ const Dfa2Regex = () => {
             return newDfa
         }
         let newDfa = removeNullDfa(dfa)
+        console.log(newDfa)
+        setDfa(newDfa)
+        // check linkLabel have $
+        console.log(newDfa)
+        if (links) {
+            links.forEach(link => {
+                if (link && link.label === '$') {
+                    link.label = ''
+                    alert('Dfa does not contain the $ character')
+                }
+            })
+        }
+    }, [nodes, links, initStates, finalStates])
+
+    let listLinkToTransitionFunctionForDfa = (states) => {
+        let transition_function = {}
+        if (states) {
+            states.forEach(state => {
+                transition_function[state] = {}
+                if (links) {
+                    links.forEach(link => {
+                        if (link.label) {
+                            let listAlphabets = link.label.split(',')
+                            if (listAlphabets) {
+                                listAlphabets.forEach(alpha => {
+                                    transition_function[state][alpha] = ''
+                                })
+                            }
+                        }
+                    })
+                    links.forEach(link => {
+                        if (link && link.source.id && link.label) {
+                            let sourceId = link.source.id
+                            let listAlphabets = link.label.split(',')
+                            if (sourceId === state && listAlphabets) {
+                                let targetId = link.target.id
+                                listAlphabets.forEach(alpha => {
+                                    if (!transition_function[state][alpha].includes(targetId)) {
+                                        transition_function[state][alpha] = targetId
+                                    }
+                                })
+                            }
+                        }
+                    })
+                }
+            })
+        }
+        return transition_function
+    }
+
+    let handleSubmit = async () => {
         if (finalStates.length !== 0) {
             setShowLoader(true)
-            let response = await api.dfa2regex(newDfa)
+            let response = await api.dfa2regex(dfa)
             if (response.err) {
                 console.log(response)
             } else {
@@ -124,7 +164,7 @@ const Dfa2Regex = () => {
             }
             setShowLoader(false)
         } else {
-            alert('Bạn chưa chọn trạng thái kết thúc')
+            alert('You have not selected an end state.')
         }
     }
 
@@ -139,6 +179,7 @@ const Dfa2Regex = () => {
             setHeightSvg(window.innerHeight - 150)
         }
     }, [])
+
     return (
         <>
             <Header />
@@ -161,6 +202,8 @@ const Dfa2Regex = () => {
                         setFinalStates={setFinalStates}
                         initStates={initStates}
                         setInitStates={setInitStates}
+                        nodeAfterRead={nodeAfterRead}
+                        typeAutomata={'dfa'}
                     />
                 </div>
                 <div className={styles.right}>
@@ -180,8 +223,15 @@ const Dfa2Regex = () => {
                     <div>
                         <button className={styles.convertButton} onClick={handleSubmit}>convert</button>
                     </div>
-                    <div>
+                    <div className={styles.regex}>
                         Regex: {regex}
+                    </div>
+                    <div>
+                        <ToolRead
+                            setNodeAfterRead={setNodeAfterRead}
+                            automata={dfa}
+                            typeAutomata={'dfa'}
+                        />
                     </div>
                 </div>
             </div >
