@@ -10,9 +10,8 @@ import {
     findVectors, findShadowOfPointFromVector
 } from '../utils/commonFunctions'
 import { v4 as uuidv4 } from 'uuid';
-import api from '@/api';
 import { useDispatch } from 'react-redux';
-import headerActions from '@/redux/action/headerActions';
+import headerActions from '../redux/action/headerActions';
 
 const ToolDraw = ({ widthSvg,
     heightSvg,
@@ -391,7 +390,7 @@ const ToolDraw = ({ widthSvg,
             })
         }
 
-        let paths = document.querySelectorAll('path')
+        let paths = document.querySelectorAll('#myCanvas path')
         if (paths) {
             paths.forEach(path => {
                 path.addEventListener('click', handlePathClick)

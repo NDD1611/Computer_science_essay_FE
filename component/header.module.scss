@@ -86,6 +86,13 @@
     }
 }
 
+.root {
+
+    &:hover {
+        background-color: #888888;
+    }
+}
+
 @keyframes example {
     from {
         background-color: red;

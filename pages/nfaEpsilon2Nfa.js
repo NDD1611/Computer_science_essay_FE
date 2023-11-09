@@ -7,17 +7,17 @@ import {
     transitionFunctionToLinks,
     transition_function_star
 } from '../utils/commonFunctions'
-import Header from '@/component/header';
+import Header from '../component/header';
 import { useDispatch } from 'react-redux';
-import headerActions from '@/redux/action/headerActions';
-import Loader from '@/component/Loader';
-import IntroduceForce from '@/component/introduceForce';
-import IntroduceDraw from '@/component/introduceDraw';
-import IntroduceDelete from '@/component/introduceDelete';
-import IntroduceEdit from '@/component/introduceEdit';
-import ToolDraw from '@/component/toolDraw';
-import ToolDisplay from '@/component/toolDisplay';
-import ToolRead from '@/component/toolRead';
+import headerActions from '../redux/action/headerActions';
+import Loader from '../component/Loader';
+import IntroduceForce from '../component/introduceForce';
+import IntroduceDraw from '../component/introduceDraw';
+import IntroduceDelete from '../component/introduceDelete';
+import IntroduceEdit from '../component/introduceEdit';
+import ToolDraw from '../component/toolDraw';
+import ToolDisplay from '../component/toolDisplay';
+import ToolRead from '../component/toolRead';
 
 const NfaEpsilon2Nfa = () => {
     const [mode, setMode] = useState(0) // 0: force, 1: draw, 2: delete, 3: edit

@@ -10,10 +10,10 @@ import {
 import api from '../api'
 import styles from './regex2nfa.module.scss'
 import { Oval } from "react-loader-spinner";
-import Header from "@/component/header";
+import Header from "../component/header";
 import { useDispatch } from "react-redux";
-import headerActions from "@/redux/action/headerActions";
-import Loader from "@/component/Loader";
+import headerActions from "../redux/action/headerActions";
+import Loader from "../component/Loader";
 
 const Regex2Dfa = () => {
 

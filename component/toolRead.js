@@ -1,5 +1,5 @@
 
-import { getEpsilonClosure, transition_function_star } from '@/utils/commonFunctions'
+import { getEpsilonClosure, transition_function_star } from '../utils/commonFunctions'
 import styles from './toolRead.module.scss'
 import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'

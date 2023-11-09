@@ -1,18 +1,22 @@
 
 
-import headerActions from '@/redux/action/headerActions'
+import headerActions from '../redux/action/headerActions'
 import styles from './header.module.scss'
 import { useDispatch, useSelector } from 'react-redux'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faChevronRight, faChevronDown } from '@fortawesome/free-solid-svg-icons'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+import { Button, NavLink, Text, rem } from '@mantine/core'
+import { IconArrowBigRightLines, IconGauge } from '@tabler/icons-react';
+import userActions from '../redux/action/userActions'
 
 
 const Header = () => {
     const showHeader = useSelector(state => state.header.showHeader)
     const title = useSelector(state => state.header.title)
     const showLinkAutomataTool = useSelector(state => state.header.showLinkAutomataTool)
+    const userDetails = useSelector(state => state.user.userDetails)
     const dispatch = useDispatch()
     const router = useRouter()
     let id = null
@@ -58,6 +62,14 @@ const Header = () => {
         } else {
             navBarElement.style.left = '-250px'
         }
+
+        let useDetailLocal = JSON.parse(localStorage.getItem('userDetails'))
+        if (useDetailLocal) {
+            dispatch({
+                type: userActions.SET_USER_DETAILS,
+                userDetails: useDetailLocal
+            })
+        }
         return () => {
             clearInterval(id)
         }
@@ -77,50 +89,89 @@ const Header = () => {
             })
         }
     }
+
     return (
         <div className={styles.header}>
-            <div className={styles.bars} onClick={handleClickBarIcon}>
+            <div className={styles.bars}
+                onClick={handleClickBarIcon}
+            >
                 <FontAwesomeIcon icon={faBars} />
             </div>
             <div className={styles.title} >
                 {title}
             </div>
+            <div className='text-white w-[150px] flex items-center justify-center gap-[10px]'>
+                {
+                    userDetails != null &&
+                    <Text>{userDetails.name}</Text>
+                }
+                {
+                    userDetails == null &&
+                    <Button onClick={() => { handleClickLink('/login') }}>
+                        <IconArrowBigRightLines />
+                        <Text
+                            ml={rem(5)}
+                        >
+                            SIGN IN
+                        </Text>
+                    </Button>
+                }
+            </div>
             <div className={`${styles.containerNavBar}`}>
-                <div>
-                    <div className={styles.groupChoose}
-                        onClick={handleClickAutomataTool}
-                    >
-                        <div className={styles.groupIcon}>
-                            {
-                                showLinkAutomataTool ? <FontAwesomeIcon icon={faChevronDown} /> : <FontAwesomeIcon icon={faChevronRight} />
-                            }
-
-                        </div>
-                        Automata tools
-                    </div>
-                    <div className={`${styles.listLinks} ${!showLinkAutomataTool && styles.hideLink}`}>
-                        <div className={styles.linkContainer}
-                            onClick={() => { handleClickLink('/regex2nfa') }}
-                        >
-                            Regex to NFAε
-                        </div>
-                        <div className={styles.linkContainer}
-                            onClick={() => { handleClickLink('/nfaEpsilon2Nfa') }}
-                        >
-                            NFAε to NFA
-                        </div>
-                        <div className={styles.linkContainer}
-                            onClick={() => { handleClickLink('/nfa2dfa') }}
-                        >
-                            NFA to DFA
-                        </div>
-                        <div className={styles.linkContainer}
-                            onClick={() => { handleClickLink('/dfa2regex') }}
-                        >
-                            DFA to Regex
-                        </div>
-                    </div>
-                </div>
+                <NavLink
+                    label="Automata tools"
+                    leftSection={<IconGauge size="1rem" stroke={1.5} />}
+                    childrenOffset={28}
+                    classNames={styles}
+                >
+                    <NavLink
+                        classNames={styles}
+                        label="Regex to NFAε"
+                        onClick={() => { handleClickLink('/regex2nfa') }}
+                    />
+                    <NavLink
+                        classNames={styles}
+                        label="NFAε to NFA"
+                        onClick={() => { handleClickLink('/nfaEpsilon2Nfa') }}
+                    />
+                    <NavLink
+                        classNames={styles}
+                        label="NFA to DFA"
+                        onClick={() => { handleClickLink('/nfa2dfa') }}
+                    />
+                    <NavLink
+                        classNames={styles}
+                        label="DFA to Regex"
+                        onClick={() => { handleClickLink('/dfa2regex') }}
+                    />
+                </NavLink>
+                <NavLink
+                    label="My driver"
+                    leftSection={<IconGauge size="1rem" stroke={1.5} />}
+                    childrenOffset={28}
+                    classNames={styles}
+                >
+                    <NavLink
+                        classNames={styles}
+                        label="Regex to NFAε"
+                        onClick={() => { handleClickLink('/regex2nfa') }}
+                    />
+                    <NavLink
+                        classNames={styles}
+                        label="NFAε to NFA"
+                        onClick={() => { handleClickLink('/nfaEpsilon2Nfa') }}
+                    />
+                    <NavLink
+                        classNames={styles}
+                        label="NFA to DFA"
+                        onClick={() => { handleClickLink('/nfa2dfa') }}
+                    />
+                    <NavLink
+                        classNames={styles}
+                        label="DFA to Regex"
+                        onClick={() => { handleClickLink('/dfa2regex') }}
+                    />
+                </NavLink>
             </div>
         </div>
     )

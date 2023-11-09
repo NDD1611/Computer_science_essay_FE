@@ -1,18 +1,18 @@
 
 import styles from './nfa2dfa.module.scss'
 import { useEffect, useState } from 'react';
-import Header from '@/component/header';
+import Header from '../component/header';
 import { useDispatch } from 'react-redux';
-import headerActions from '@/redux/action/headerActions';
-import Loader from '@/component/Loader';
-import IntroduceForce from '@/component/introduceForce';
-import IntroduceDraw from '@/component/introduceDraw';
-import IntroduceDelete from '@/component/introduceDelete';
-import IntroduceEdit from '@/component/introduceEdit';
-import ToolDraw from '@/component/toolDraw';
-import { listLinkToTransitionFunctionForNFA } from '@/utils/commonFunctions';
-import api from '@/api';
-import ToolDisplay from '@/component/toolDisplay';
+import headerActions from '../redux/action/headerActions';
+import Loader from '../component/Loader';
+import IntroduceForce from '../component/introduceForce';
+import IntroduceDraw from '../component/introduceDraw';
+import IntroduceDelete from '../component/introduceDelete';
+import IntroduceEdit from '../component/introduceEdit';
+import ToolDraw from '../component/toolDraw';
+import { listLinkToTransitionFunctionForNFA } from '../utils/commonFunctions';
+import api from '../api';
+import ToolDisplay from '../component/toolDisplay';
 
 const Nfa2Dfa = () => {
     const [mode, setMode] = useState(0) // 0: force, 1: draw, 2: delete, 3: edit
@@ -24,7 +24,7 @@ const Nfa2Dfa = () => {
     const [initStates, setInitStates] = useState('')
     const [radiusCircle, setRadiusCircle] = useState(30)
     const [linkLength, setLinkLength] = useState(200)
-    const [dataShowDfa, setDataShowDfa] = useState(false)
+    const [dataShowDfa, setDataShowDfa] = useState({})
     const dispatch = useDispatch()
 
 
@@ -37,40 +37,45 @@ const Nfa2Dfa = () => {
     }, [])
 
     let handleSubmit = async () => {
-        setShowLoader(true)
-        let states = nodes.map(node => {
-            return node.id
-        })
+        try {
 
-        let alphabets = []
-
-        if (links) {
-            links.forEach(link => {
-                if (!alphabets.includes(link.label) && link.label) {
-                    alphabets.push(link.label)
-                }
+            setShowLoader(true)
+            let states = nodes.map(node => {
+                return node.id
             })
-        }
 
-        let transition_function = listLinkToTransitionFunctionForNFA(states, links)
+            let alphabets = []
 
-        let nfa = {
-            states: states,
-            initial_state: initStates,
-            final_states: finalStates,
-            alphabets: alphabets,
-            transition_function: transition_function
-        }
+            if (links) {
+                links.forEach(link => {
+                    if (!alphabets.includes(link.label) && link.label) {
+                        alphabets.push(link.label)
+                    }
+                })
+            }
 
-        let response = await api.nfa2dfa(nfa)
-        if (response.err) {
-            console.log(response)
-        } else {
-            let { dfa, dataShowDfa } = response.data
-            setDataShowDfa(dataShowDfa)
-            console.log(dataShowDfa)
+            let transition_function = listLinkToTransitionFunctionForNFA(states, links)
+
+            let nfa = {
+                states: states,
+                initial_state: initStates,
+                final_states: finalStates,
+                alphabets: alphabets,
+                transition_function: transition_function
+            }
+
+            let response = await api.nfa2dfa(nfa)
+            if (response.err) {
+                console.log(response)
+            } else {
+                let { dfa, dataShowDfa } = response.data
+                setDataShowDfa(dataShowDfa)
+            }
+            setShowLoader(false)
+        } catch (err) {
+            console.log(err)
+            setShowLoader(false)
         }
-        setShowLoader(false)
     }
 
     const [showLoader, setShowLoader] = useState(false)
