@@ -173,6 +173,10 @@ const Dfa2Regex = () => {
             type: headerActions.SET_TITLE_HEADER,
             title: 'DFA to Regex'
         })
+        dispatch({
+            type: headerActions.SET_SELECT_HEADER,
+            headerSelect: 'dfa2regex'
+        })
         let leftElement = document.querySelector(`.${styles.left}`)
         if (leftElement) {
             setWidthSvg(leftElement.clientWidth)

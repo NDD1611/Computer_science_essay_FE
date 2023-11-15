@@ -85,6 +85,10 @@ const Nfa2Dfa = () => {
             type: headerActions.SET_TITLE_HEADER,
             title: 'NFA to DFA'
         })
+        dispatch({
+            type: headerActions.SET_SELECT_HEADER,
+            headerSelect: 'nfaε2dfa'
+        })
     }, [])
     return (
         <>

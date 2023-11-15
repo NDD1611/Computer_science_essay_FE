@@ -14,6 +14,7 @@ import userActions from '../redux/action/userActions'
 
 const Header = () => {
     const showHeader = useSelector(state => state.header.showHeader)
+    const headerSelect = useSelector(state => state.header.headerSelect)
     const title = useSelector(state => state.header.title)
     const showLinkAutomataTool = useSelector(state => state.header.showLinkAutomataTool)
     const userDetails = useSelector(state => state.user.userDetails)
@@ -78,18 +79,14 @@ const Header = () => {
     const handleClickLink = (path) => {
         router.push(path)
     }
-    const handleClickAutomataTool = () => {
-        if (showLinkAutomataTool) {
-            dispatch({
-                type: headerActions.SET_HIDE_LINK_AUTOMATA_TOOL
-            })
-        } else {
-            dispatch({
-                type: headerActions.SET_SHOW_LINK_AUTOMATA_TOOL
-            })
-        }
+    const logOut = () => {
+        localStorage.removeItem('userDetails')
+        dispatch({
+            type: userActions.SET_USER_DETAILS,
+            userDetails: null
+        })
+        router.push('/regex2nfa')
     }
-
     return (
         <div className={styles.header}>
             <div className={styles.bars}
@@ -100,7 +97,7 @@ const Header = () => {
             <div className={styles.title} >
                 {title}
             </div>
-            <div className='text-white w-[150px] flex items-center justify-center gap-[10px]'>
+            <div className='text-white w-[300px] flex items-center justify-center gap-[10px]'>
                 {
                     userDetails != null &&
                     <Text>{userDetails.name}</Text>
@@ -116,6 +113,17 @@ const Header = () => {
                         </Text>
                     </Button>
                 }
+                {
+                    userDetails != null &&
+                    <Button onClick={() => { logOut() }}>
+                        <IconArrowBigRightLines />
+                        <Text
+                            ml={rem(5)}
+                        >
+                            LOG OUT
+                        </Text>
+                    </Button>
+                }
             </div>
             <div className={`${styles.containerNavBar}`}>
                 <NavLink
@@ -128,50 +136,34 @@ const Header = () => {
                         classNames={styles}
                         label="Regex to NFAε"
                         onClick={() => { handleClickLink('/regex2nfa') }}
+                        active={headerSelect == 'regex2nfa'}
                     />
                     <NavLink
                         classNames={styles}
                         label="NFAε to NFA"
                         onClick={() => { handleClickLink('/nfaEpsilon2Nfa') }}
+                        active={headerSelect == 'nfaε2nfa'}
                     />
                     <NavLink
                         classNames={styles}
                         label="NFA to DFA"
                         onClick={() => { handleClickLink('/nfa2dfa') }}
+                        active={headerSelect == 'nfaε2dfa'}
                     />
                     <NavLink
                         classNames={styles}
                         label="DFA to Regex"
                         onClick={() => { handleClickLink('/dfa2regex') }}
+                        active={headerSelect == 'dfa2regex'}
                     />
                 </NavLink>
                 <NavLink
                     label="My driver"
-                    leftSection={<IconGauge size="1rem" stroke={1.5} />}
                     childrenOffset={28}
                     classNames={styles}
-                >
-                    <NavLink
-                        classNames={styles}
-                        label="Regex to NFAε"
-                        onClick={() => { handleClickLink('/regex2nfa') }}
-                    />
-                    <NavLink
-                        classNames={styles}
-                        label="NFAε to NFA"
-                        onClick={() => { handleClickLink('/nfaEpsilon2Nfa') }}
-                    />
-                    <NavLink
-                        classNames={styles}
-                        label="NFA to DFA"
-                        onClick={() => { handleClickLink('/nfa2dfa') }}
-                    />
-                    <NavLink
-                        classNames={styles}
-                        label="DFA to Regex"
-                        onClick={() => { handleClickLink('/dfa2regex') }}
-                    />
-                </NavLink>
+                    onClick={() => { handleClickLink('/driver') }}
+                    active={headerSelect == 'driver'}
+                ></NavLink>
             </div>
         </div>
     )
