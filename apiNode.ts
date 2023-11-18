@@ -51,13 +51,14 @@ export const createFolder = async (name: string, parentId: string, userId: strin
     };
   }
 };
-export const saveFile = async (name: string, parentId: string, userId: string, path: string) => {
+export const saveFile = async (name: string, parentId: string, userId: string, path: string, size: string) => {
   try {
     let response = await axiosNode.post("/drive/save-file", {
       name,
       parentId,
       userId,
       path,
+      size
     });
     return response;
   } catch (exception) {
@@ -65,5 +66,19 @@ export const saveFile = async (name: string, parentId: string, userId: string, p
       err: true,
       exception,
     };
+  }
+};
+export const deleteFolder = async (folderId: string) => {
+  try {
+    let response = await axiosNode.post("/drive/delete-folder", { folderId });
+    return {
+      err: false,
+      response
+    };
+  } catch (exception) {
+    return {
+      err: true,
+      exception
+    }
   }
 };

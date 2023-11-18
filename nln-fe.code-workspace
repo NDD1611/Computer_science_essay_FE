@@ -6,7 +6,12 @@
 	],
 	"settings": {
 		"cSpell.words": [
-			"mantine"
+			"Breadcrumd",
+			"mantine",
+			"Mydrive",
+			"tabler",
+			"tailwindcss",
+			"toastify"
 		]
 	}
 }

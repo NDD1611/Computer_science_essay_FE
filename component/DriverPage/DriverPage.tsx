@@ -1,34 +1,20 @@
-import {
-  Box,
-  Breadcrumbs,
-  Button,
-  Flex,
-  Image,
-  Modal,
-  NavLink,
-  Table,
-  TextInput,
-} from "@mantine/core";
+'use client'
+import { Box, Breadcrumbs, Button, Flex, Image, Menu, Modal, NavLink, Table, Text, TextInput, rem } from "@mantine/core";
 import Header from "../header";
 import styles from "./DriverPage.module.scss";
-import { ChangeEvent, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 import { IconArrowBarUp, IconFolderPlus } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
-import { getAllFolder, createFolder, saveFile } from "../../apiNode";
+import { getAllFolder, createFolder, saveFile, deleteFolder } from "../../apiNode";
 import { checkNamesake } from "../../helpers/checkNamesake";
 import { findRootFolder } from "../../helpers/findRootFolder";
 import { findChildOfFolder } from "../../helpers/findChildOfFolder";
 import { findParentOfFolder } from "../../helpers/findParentOfFolder";
 import { initializeApp } from "firebase/app";
-import {
-  getStorage,
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { RowTable } from "./RowTable";
 
 export interface folder {
   _id: string;
@@ -48,7 +34,8 @@ export const DriverPage = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [folders, setFolders] = useState<folder[]>([]);
   const [folderName, setFolderName] = useState<string>("");
-  const inputUploadFile = useRef<HTMLInputElement | null>(null);
+  const inputUploadFile = useRef<any>();
+  const [progressUploads, setProgressUpload] = useState([])
 
   const firebaseConfig = useMemo(() => {
     return {
@@ -62,29 +49,31 @@ export const DriverPage = () => {
     };
   }, []);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     let userDetailsLocal = JSON.parse(localStorage.getItem("userDetails"));
     if (!userDetailsLocal) {
       toast.warn("Sign in to use this feature");
       router.push("/login");
     }
-  }, [])
-
-  useEffect(() => {
-    let userDetailsLocal = JSON.parse(localStorage.getItem("userDetails"));
     if (userDetailsLocal) {
       (async () => {
         if (userDetailsLocal) {
           let res: any = await getAllFolder(userDetailsLocal._id);
           let folders = res.data;
           setFolders(folders);
-          let rootFolder: folder = findRootFolder(folders);
+          let rootFolder: folder = findRootFolder(folders, userDetailsLocal._id);
           setFolderCurrent(rootFolder);
         }
         setUserDetails(userDetailsLocal);
       })();
     }
   }, []);
+
+  const refreshDrive = async () => {
+    let response: any = await getAllFolder(userDetails._id);
+    let folders = response.data;
+    setFolders(folders);
+  }
 
   const handleCreateFolder = async () => {
     if (folderName.length != 0) {
@@ -104,9 +93,7 @@ export const DriverPage = () => {
         } else {
           toast.success(res?.data);
           close();
-          let response: any = await getAllFolder(userDetails._id);
-          let folders = response.data;
-          setFolders(folders);
+          refreshDrive()
         }
       }
     } else {
@@ -118,6 +105,15 @@ export const DriverPage = () => {
       setFolderCurrent(folder);
     }
   };
+  const handleDeleteFolder = async (folder: folder) => {
+    let res = await deleteFolder(folder._id)
+    if (res.err == false) {
+      toast.success(res?.response?.data)
+      refreshDrive()
+    } else {
+      toast.error(res?.exception?.response?.data)
+    }
+  }
   const build = () => {
     if (folderCurrent) {
       let childFolders: folder[] = findChildOfFolder(
@@ -126,12 +122,12 @@ export const DriverPage = () => {
       );
       if (childFolders) {
         return childFolders?.map((folder: folder) => {
-          return <Table.Tr key={folder._id} onClick={() => { folderClick(folder) }}>
-            <Table.Td className="cursor-pointer">{folder.name}</Table.Td>
-            <Table.Td>{'dfd'}</Table.Td>
-            <Table.Td>{folder.dateCreate}</Table.Td>
-            <Table.Td>{folder.size}</Table.Td>
-          </Table.Tr>
+          return <RowTable
+            userDetails={userDetails}
+            folder={folder}
+            folderClick={folderClick}
+            handleDeleteFolder={handleDeleteFolder}
+          ></RowTable>
         });
       }
     }
@@ -170,7 +166,7 @@ export const DriverPage = () => {
   }, [folderCurrent]);
 
   const handleClickMydrive = () => {
-    let rootFolder = findRootFolder(folders);
+    let rootFolder = findRootFolder(folders, userDetails._id);
     if (rootFolder) {
       setFolderCurrent(rootFolder);
     }
@@ -182,12 +178,16 @@ export const DriverPage = () => {
     }
   };
   const handleChangeInputFile = (e: ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.files);
     const app = initializeApp(firebaseConfig);
     const storage = getStorage(app);
     let file: File | undefined | null = e.target.files[0];
     if (file) {
       let dateUploadFile = Date.now();
+      let progressData = {
+        id: dateUploadFile,
+        name: file.name
+      }
+      setProgressUpload([...progressUploads, progressData])
       let type = file.type;
       let fileBlob = file instanceof Blob ? file : new Blob([file], { type: type });
       let fileName = dateUploadFile + "-" + Math.round(Math.random() * 1e9) + "." + file.name.split(".").pop();
@@ -196,7 +196,17 @@ export const DriverPage = () => {
       uploadTask.on('state_changed',
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log('Upload is ' + progress + '% done');
+          // console.log('Upload is ' + progress + '% done');
+          let progressElement = document.getElementById(dateUploadFile.toString())
+          if (progressElement) {
+            progressElement.style.width = `${progress}%`
+          }
+          if (progress == 100) {
+            let newProgressUpload = progressUploads.filter(progress => {
+              return progress.id != dateUploadFile
+            })
+            setProgressUpload(newProgressUpload)
+          }
           switch (snapshot.state) {
             case 'paused':
               console.log('Upload is paused');
@@ -218,8 +228,8 @@ export const DriverPage = () => {
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
-            console.log('File available at', downloadURL);
-            let res: any = await saveFile(file.name, folderCurrent._id, userDetails._id, downloadURL)
+            // console.log('File available at', downloadURL);
+            let res: any = await saveFile(file.name, folderCurrent._id, userDetails._id, downloadURL, file.size.toString())
             if (res.err) {
               toast.error("upload file failed!");
             } else {
@@ -238,7 +248,6 @@ export const DriverPage = () => {
   return (
     <>
       <Header />
-
       <Modal
         opened={opened}
         onClose={close}
@@ -297,7 +306,6 @@ export const DriverPage = () => {
             <input
               className="hidden"
               ref={inputUploadFile}
-              id="inputUploadFile"
               type="file"
               onChange={handleChangeInputFile}
             />
@@ -313,11 +321,23 @@ export const DriverPage = () => {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>{rows && rows}</Table.Tbody>
-              <Table.Caption>Scroll page to see sticky thead</Table.Caption>
             </Table>
           </Box>
         </Box>
       </Flex>
+      <Box component="div" className={styles.progressContainer}>
+        {
+          progressUploads.length != 0 &&
+          progressUploads.map(progress => {
+            return <Box key={progress.id} className={styles.progress}>
+              <Text className={styles.fileName}>{progress.name}</Text>
+              <div className={styles.progressBar}>
+                <div id={progress.id} className={styles.bar}></div>
+              </div>
+            </Box>
+          })
+        }
+      </Box>
     </>
   );
 };

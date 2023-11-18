@@ -6,3 +6,38 @@
 .header {
     border-bottom: 1px solid #202e3e;
 }
+
+.progressContainer {
+    position: fixed;
+    width: 300px;
+    bottom: 10px;
+    right: 10px;
+    padding: 10px;
+
+
+    .progress {
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+
+        .fileName {
+            width: 100%;
+            padding-bottom: 5px;
+            word-break: break-all;
+        }
+
+        .progressBar {
+            border: 1px solid #ccc;
+            height: 10px;
+            width: 100%;
+            border-radius: 5px;
+
+            .bar {
+                background-color: blue;
+                width: 0;
+                height: 100%;
+            }
+        }
+    }
+}

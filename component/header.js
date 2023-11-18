@@ -158,7 +158,7 @@ const Header = () => {
                     />
                 </NavLink>
                 <NavLink
-                    label="My driver"
+                    label="My drive"
                     childrenOffset={28}
                     classNames={styles}
                     onClick={() => { handleClickLink('/driver') }}

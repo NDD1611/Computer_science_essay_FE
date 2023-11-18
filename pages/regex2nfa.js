@@ -2,7 +2,7 @@
 import { use, useEffect, useState } from "react";
 // import { data } from '../data'
 import './regex2nfa.module.scss'
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, selectAll, pointer, drag, forceX, forceY, link } from "d3";
+import { select, forceSimulation, forceLink, forceManyBody, forceCenter, drag } from "d3";
 import {
     evaluateOfLinkLabelX, evaluateOfLinkLabelY, progressOneNode, pathLink, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
 } from '../utils/commonFunctions'
@@ -17,7 +17,6 @@ import Loader from "../component/Loader";
 
 const Regex2Dfa = () => {
 
-    const [force, setForce] = useState(false)
     const [lengthDistanceEdge, setLengthDistanceEdge] = useState(50)
     const [linkLength, setLinkLength] = useState(200)
     const [radiusCircle, setRadiusCircle] = useState(30)
@@ -295,7 +294,7 @@ const Regex2Dfa = () => {
                                 type="text"
                                 value={regex}
                                 onChange={(e) => { handleChangeInputRegex(e) }}
-                                placeholder="01*+1"
+                                placeholder="01*"
                             />
                         </div>
                         <div className={styles.inputDataBottom}>
