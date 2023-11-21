@@ -1,15 +1,13 @@
 
-import { use, useEffect, useState } from "react";
-// import { data } from '../data'
+import { useEffect, useState } from "react";
 import './regex2nfa.module.scss'
 import { select, forceSimulation, forceLink, forceManyBody, forceCenter, drag } from "d3";
 import {
-    evaluateOfLinkLabelX, evaluateOfLinkLabelY, progressOneNode, pathLink, transition_function, checkLinkTrungNhau, findVectors, findShadowOfPointFromVector
+    evaluateOfLinkLabelX, evaluateOfLinkLabelY, pathLink, transition_function, checkForDuplicatePath
 } from '../utils/commonFunctions'
 
 import api from '../api'
 import styles from './regex2nfa.module.scss'
-import { Oval } from "react-loader-spinner";
 import Header from "../component/header";
 import { useDispatch } from "react-redux";
 import headerActions from "../redux/action/headerActions";
@@ -51,26 +49,23 @@ const Regex2Dfa = () => {
                 .attr('width', widthSvg)
                 .attr('height', heightSvg)
 
-            let listLinkTrung = checkLinkTrungNhau(links)
+            let listLinkTrung = checkForDuplicatePath(links)
 
-            // Tạo SVG
             let svg = select("#myCanvas");
 
-            //  Vẽ các liên kết
             let link = svg.selectAll(".link")
                 .data(links)
                 .enter().append("path")
                 .attr("class", "link")
-                .attr("marker-end", "url(#arrow)") // Thêm mũi tên
+                .attr("marker-end", "url(#arrow)")
 
 
-            //  Vẽ các mũi tên
             svg.append("defs").selectAll("marker")
-                .data(["arrow"]) // Tên mũi tên
+                .data(["arrow"])
                 .enter().append("marker")
                 .attr("id", d => d)
                 .attr("viewBox", "0 -5 10 10")
-                .attr("refX", radiusCircle) // Vị trí của mũi tên
+                .attr("refX", radiusCircle)
                 .attr("refY", 0)
                 .attr("markerWidth", 5)
                 .attr("markerHeight", 5)
@@ -78,14 +73,12 @@ const Regex2Dfa = () => {
                 .append("path")
                 .attr("d", "M0,-5L10,0L0,5");
 
-            // Vẽ các nhãn
             let linkLabels = svg.selectAll(".link-label")
                 .data(links)
                 .enter().append("text")
                 .attr("class", "link-label")
                 .text(d => d.label);
 
-            //  Vẽ các đỉnh
             let node = svg.selectAll(".node")
                 .data(nodes)
                 .enter().append('circle')
@@ -94,12 +87,11 @@ const Regex2Dfa = () => {
                 .attr('id', d => d.id)
 
 
-            //  Vẽ văn bản trong các node
             let nodeLabels = svg.selectAll(".node-label")
                 .data(nodes)
                 .enter().append("text")
                 .attr("class", "node-label")
-                .attr("dy", 5) // Vị trí theo trục y
+                .attr("dy", 5)
                 .style("text-anchor", "middle")
                 .text(d => "q" + d.label);
 
@@ -108,8 +100,6 @@ const Regex2Dfa = () => {
                 .force("center", forceCenter(svg.attr("width") / 2, svg.attr("height") / 2))
                 .force("charge", forceManyBody().strength(-50))
 
-
-            // // Thiết lập vị trí ban đầu và cập nhật vị trí sau mỗi bước mô phỏng
             simulation.on("tick", () => {
                 link
                     .attr('d', d => {
@@ -177,7 +167,6 @@ const Regex2Dfa = () => {
                     });
             });
 
-            // Kích hoạt tính năng kéo thả cho các node
             node.call(dragCustom(simulation));
             node.on('click', (event) => {
                 console.log(event.target)
@@ -197,7 +186,6 @@ const Regex2Dfa = () => {
         return () => {
             select('#myCanvas').remove()
         }
-        // end effect
     })
 
     let dragCustom = (simulation) => {
@@ -229,15 +217,11 @@ const Regex2Dfa = () => {
     }
 
     let handleConvertRegex2Nfa = async () => {
-        //post regex
         if (regex) {
-
             setShowLoader(true)
             let response = await api.regex2nfa(regex)
-
             if (!response.err) {
                 let data = response.data
-                console.log(data)
                 setData(data)
                 setNfa(data)
                 setStates(data.states)
@@ -265,19 +249,6 @@ const Regex2Dfa = () => {
         })
     }, [])
 
-    const copyData = () => {
-        console.log(data)
-        console.log(nodes)
-        console.log(links)
-        let dataCopy = {
-            data: data,
-            nodes: nodes,
-            links: links,
-            states: states
-        }
-        localStorage.setItem('dataNfaEpsilon', JSON.stringify(dataCopy))
-    }
-
     return (
         <>
             <Header />
@@ -302,10 +273,6 @@ const Regex2Dfa = () => {
                                 onClick={handleConvertRegex2Nfa} >
                                 Convert
                             </button>
-                            {/* <button
-                                onClick={copyData} >
-                                Copy
-                            </button> */}
                         </div>
                     </div>
                 </div>

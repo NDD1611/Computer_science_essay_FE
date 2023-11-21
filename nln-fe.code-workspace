@@ -5,13 +5,9 @@
 		}
 	],
 	"settings": {
-		"cSpell.words": [
-			"Breadcrumd",
-			"mantine",
-			"Mydrive",
-			"tabler",
-			"tailwindcss",
-			"toastify"
-		]
+		"editor.formatOnSave": true,
+		"diffEditor.experimental.showEmptyDecorations": false,
+		"editor.minimap.maxColumn": 200,
+		"editor.minimap.scale": 2
 	}
 }

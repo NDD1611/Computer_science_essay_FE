@@ -11,13 +11,10 @@ import Header from '../component/header';
 import { useDispatch } from 'react-redux';
 import headerActions from '../redux/action/headerActions';
 import Loader from '../component/Loader';
-import IntroduceForce from '../component/introduceForce';
-import IntroduceDraw from '../component/introduceDraw';
-import IntroduceDelete from '../component/introduceDelete';
-import IntroduceEdit from '../component/introduceEdit';
 import ToolDraw from '../component/toolDraw';
 import ToolDisplay from '../component/toolDisplay';
 import ToolRead from '../component/toolRead';
+import { ExplainMode } from '../component/ExplainModes/ExplainMode';
 
 const NfaEpsilon2Nfa = () => {
     const [mode, setMode] = useState(0) // 0: force, 1: draw, 2: delete, 3: edit
@@ -203,19 +200,10 @@ const NfaEpsilon2Nfa = () => {
                     </div>
                 </div>
                 <div className={styles.right}>
-                    <div className={styles.mode}>
-                        <button className={mode === 0 ? styles.selectMode : ''} onClick={() => { setMode(0) }}>Force</button>
-                        <button className={mode === 1 ? styles.selectMode : ''} onClick={() => { setMode(1) }}>Draw</button>
-                        <button className={mode === 2 ? styles.selectMode : ''} onClick={() => { setMode(2) }}>Delete</button>
-                        <button className={mode === 3 ? styles.selectMode : ''} onClick={() => { setMode(3) }}>Edit</button>
-                        {/* <button className={styles.convertButton} >Instruction</button> */}
-                    </div>
-                    <div>
-                        {mode == 0 && <IntroduceForce />}
-                        {mode == 1 && <IntroduceDraw />}
-                        {mode == 2 && <IntroduceDelete />}
-                        {mode == 3 && <IntroduceEdit />}
-                    </div>
+                    <ExplainMode
+                        mode={mode}
+                        setMode={setMode}
+                    />
                     <div>
                         <button className={styles.convertButton} onClick={handleSubmit}>convert</button>
                     </div>

@@ -27,7 +27,6 @@ export const Register = () => {
         },
     });
     const handleSubmitForm = async () => {
-        console.log(form.values)
         let res: any = await registerApi(form.values)
         if (res.err) {
             toast.error(res?.exception?.response?.data)

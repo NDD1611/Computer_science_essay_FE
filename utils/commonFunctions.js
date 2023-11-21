@@ -49,7 +49,7 @@ export let transitionFunctionToLinks = (transitionDatas) => {
     return listPathAllNodes
 }
 
-export let checkLinkTrungNhau = (links) => {
+export let checkForDuplicatePath = (links) => {
     let listLinkTrungNhauTheoCap = []
     let listLinkTrungNhau = []
     for (let i = 0; i < links.length - 1; i++) {

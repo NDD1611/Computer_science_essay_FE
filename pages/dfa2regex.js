@@ -6,12 +6,9 @@ import Header from '../component/header';
 import { useDispatch } from 'react-redux';
 import headerActions from '../redux/action/headerActions';
 import Loader from '../component/Loader';
-import IntroduceForce from '../component/introduceForce';
-import IntroduceDraw from '../component/introduceDraw';
-import IntroduceDelete from '../component/introduceDelete';
-import IntroduceEdit from '../component/introduceEdit';
 import ToolDraw from '../component/toolDraw';
 import ToolRead from '../component/toolRead';
+import { ExplainMode } from '../component/ExplainModes/ExplainMode';
 
 const Dfa2Regex = () => {
     const [mode, setMode] = useState(0) // 0: force, 1: draw, 2: delete, 3: edit
@@ -37,7 +34,6 @@ const Dfa2Regex = () => {
     useEffect(() => {
 
         // check node read one alphabet for many link
-        console.log(links, '====')
         for (let i = 0; i < links.length - 1; i++) {
             let link1 = links[i]
             for (let j = i + 1; j < links.length; j++) {
@@ -102,10 +98,8 @@ const Dfa2Regex = () => {
             return newDfa
         }
         let newDfa = removeNullDfa(dfa)
-        console.log(newDfa)
         setDfa(newDfa)
         // check linkLabel have $
-        console.log(newDfa)
         if (links) {
             links.forEach(link => {
                 if (link && link.label === '$') {
@@ -211,19 +205,10 @@ const Dfa2Regex = () => {
                     />
                 </div>
                 <div className={styles.right}>
-                    <div className={styles.mode}>
-                        <button className={mode === 0 ? styles.selectMode : ''} onClick={() => { setMode(0) }}>Force</button>
-                        <button className={mode === 1 ? styles.selectMode : ''} onClick={() => { setMode(1) }}>Draw</button>
-                        <button className={mode === 2 ? styles.selectMode : ''} onClick={() => { setMode(2) }}>Delete</button>
-                        <button className={mode === 3 ? styles.selectMode : ''} onClick={() => { setMode(3) }}>Edit</button>
-                        {/* <button className={styles.convertButton} >Instruction</button> */}
-                    </div>
-                    <div>
-                        {mode == 0 && <IntroduceForce />}
-                        {mode == 1 && <IntroduceDraw />}
-                        {mode == 2 && <IntroduceDelete />}
-                        {mode == 3 && <IntroduceEdit />}
-                    </div>
+                    <ExplainMode
+                        mode={mode}
+                        setMode={setMode}
+                    />
                     <div>
                         <button className={styles.convertButton} onClick={handleSubmit}>convert</button>
                     </div>

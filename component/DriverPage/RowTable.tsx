@@ -27,7 +27,6 @@ export const RowTable = ({ folder: folder, folderClick, userDetails, handleDelet
             setLoad(true)
             const app = initializeApp(firebaseConfig);
             const storage = getStorage();
-            console.log(folder)
             let fileNameOnCloud = folder.path.split('?')[0].split('%2F').pop()
             const storageRef = ref(storage, 'drive/' + fileNameOnCloud);
 

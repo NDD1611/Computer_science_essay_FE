@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import {
     select, forceSimulation, forceLink, forceManyBody, forceCenter, drag
 } from "d3";
-import { checkLinkTrungNhau, pathLink, evaluateOfLinkLabelX, evaluateOfLinkLabelY } from '../utils/commonFunctions'
-
-const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle }) => {
+import { checkForDuplicatePath, pathLink, evaluateOfLinkLabelX, evaluateOfLinkLabelY } from '../utils/commonFunctions'
+import { getAllLinkFromNodeId } from '../utils/getAllLinkFromNodeId'
+const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle, mode = 3 }) => {
+    let nodeDragCurrent = null
     const [lengthDistanceEdge, setLengthDistanceEdge] = useState(50)
     const [nodes, setNodes] = useState()
     const [links, setLinks] = useState()
     const [finalState, setFinalState] = useState()
+    const [myDragNodeId, setMyDragNodeId] = useState('')
 
     useEffect(() => {
         try {
@@ -29,7 +31,6 @@ const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle }) =>
             }
 
             let nodes = states.map((state, index) => {
-                console.log(state)
                 let newState = {
                     id: state,
                     label: index.toString()
@@ -37,7 +38,6 @@ const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle }) =>
                 return newState
             })
 
-            console.log(nodes, links, final_states)
             setLinks(links)
             setNodes(nodes)
             setFinalState(final_states)
@@ -56,25 +56,22 @@ const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle }) =>
                     .attr('width', widthSvg)
                     .attr('height', heightSvg)
 
-                let listLinkTrung = checkLinkTrungNhau(links)
+                let listLinkTrung = checkForDuplicatePath(links)
 
-                // Tạo SVG
                 let svg = select("#canvasDrawDfa");
 
-                //  Vẽ các liên kết
                 let link = svg.selectAll(".link")
                     .data(links)
                     .enter().append("path")
                     .attr("class", "link")
-                    .attr("marker-end", "url(#arrow)") // Thêm mũi tên
+                    .attr("marker-end", "url(#arrow)")
 
-                //  Vẽ các mũi tên
                 svg.append("defs").selectAll("marker")
-                    .data(["arrow"]) // Tên mũi tên
+                    .data(["arrow"])
                     .enter().append("marker")
                     .attr("id", d => d)
                     .attr("viewBox", "0 -5 10 10")
-                    .attr("refX", radiusCircle) // Vị trí của mũi tên
+                    .attr("refX", radiusCircle)
                     .attr("refY", 0)
                     .attr("markerWidth", 6)
                     .attr("markerHeight", 6)
@@ -82,14 +79,12 @@ const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle }) =>
                     .append("path")
                     .attr("d", "M0,-5L10,0L0,5");
 
-                // Vẽ các nhãn
                 let linkLabels = svg.selectAll(".link-label")
                     .data(links)
                     .enter().append("text")
                     .attr("class", "link-label")
                     .text(d => d.label);
 
-                //  Vẽ các đỉnh
                 let node = svg.selectAll(".node")
                     .data(nodes)
                     .enter().append('circle')
@@ -97,20 +92,25 @@ const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle }) =>
                     .attr("r", radiusCircle)
                     .attr('id', d => d.id)
 
-                //  Vẽ văn bản trong các node
                 let nodeLabels = svg.selectAll(".node-label")
                     .data(nodes)
                     .enter().append("text")
                     .attr("class", "node-label")
-                    .attr("dy", 5) // Vị trí theo trục y
+                    .attr("dy", 5)
                     .style("text-anchor", "middle")
                     .text(d => d.label);
+
                 simulation = forceSimulation(nodes)
-                    .force("link", forceLink(links).id(d => d.id).distance(linkLength))
+                    .force("link", forceLink(links).id(d => d.id).distance((d) => {
+                        if (d.length) {
+                            return d.length
+                        }
+                        return linkLength
+                    }))
                     .force("center", forceCenter(svg.attr("width") / 2, svg.attr("height") / 2))
                     .force("charge", forceManyBody().strength(-50))
 
-                // // Thiết lập vị trí ban đầu và cập nhật vị trí sau mỗi bước mô phỏng
+
                 simulation.on("tick", () => {
                     link
                         .attr('d', d => {
@@ -178,7 +178,6 @@ const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle }) =>
                         });
                 });
 
-                // Kích hoạt tính năng kéo thả cho các node
                 node.call(dragCustom(simulation));
 
                 if (finalState) {
@@ -221,6 +220,111 @@ const ToolDisplay = ({ data, widthSvg, heightSvg, linkLength, radiusCircle }) =>
             .on("drag", dragged)
             .on("end", dragEnded);
     }
+
+    let handleMoveMouseAddLink = (e) => {
+        if ((mode === 3 || mode === 1) && myDragNodeId != '') {
+            if (nodes.length) {
+                nodes.forEach(node => {
+                    if (myDragNodeId == node.id) {
+                        nodeDragCurrent = node
+                    }
+                })
+                if (nodeDragCurrent) {
+                    let svg = document.getElementById("canvasDrawDfa");
+                    let circleElement = document.createElementNS(
+                        "http://www.w3.org/2000/svg",
+                        "circle"
+                    );
+                    circleElement.setAttribute("cx", e.offsetX);
+                    circleElement.setAttribute("cy", e.offsetY);
+                    circleElement.setAttribute("r", 30);
+                    circleElement.setAttribute("stroke", 'black');
+                    circleElement.setAttribute("stroke-width", 1);
+                    circleElement.setAttribute("fill", "none");
+                    circleElement.setAttribute("class", "circleRemove");
+                    let circleRemove = document.querySelectorAll(".circleRemove");
+                    if (circleRemove) {
+                        circleRemove.forEach((circle) => {
+                            circle.remove();
+                        });
+                    }
+
+
+                    let textElement = document.createElementNS(
+                        "http://www.w3.org/2000/svg",
+                        "text"
+                    );
+                    textElement.setAttribute("x", e.offsetX - 5);
+                    textElement.setAttribute("y", e.offsetY + 5);
+                    textElement.setAttribute("class", "textRemove");
+                    textElement.innerHTML = nodeDragCurrent.label
+                    let textRemove = document.querySelectorAll(".textRemove");
+                    if (textRemove) {
+                        textRemove.forEach((text) => {
+                            text.remove();
+                        });
+                    }
+                    svg.insertBefore(circleElement, svg.firstChild);
+                    svg.insertBefore(textElement, svg.firstChild);
+                }
+            }
+        }
+    };
+    let handleContextMenuSvg = (e) => {
+        e.preventDefault()
+        if ((mode === 3 || mode === 1) && myDragNodeId != '') {
+            let linkOfNodeId = getAllLinkFromNodeId(nodeDragCurrent.id, links)
+            if (linkOfNodeId.length) {
+                let indexLinkOfNodeId = linkOfNodeId.map(link => {
+                    return link.index
+                })
+                let copyLinks = [...links]
+                copyLinks.forEach(link => {
+                    if (indexLinkOfNodeId.includes(link.index)) {
+                        if (nodeDragCurrent.id === link.source.id) {
+                            let length = Math.sqrt(Math.pow(e.offsetX - link.target.x, 2) + Math.pow(e.offsetY - link.target.y, 2))
+                            link.length = length
+                        } else if (nodeDragCurrent.id === link.target.id) {
+                            let length = Math.sqrt(Math.pow(e.offsetX - link.source.x, 2) + Math.pow(e.offsetY - link.source.y, 2))
+                            link.length = length
+                        }
+                    }
+                })
+                setLinks(copyLinks)
+            }
+            let copyNodes = [...nodes]
+            copyNodes.forEach(node => {
+                if (node.id === nodeDragCurrent.id) {
+                    node.x = e.offsetX
+                    node.y = e.offsetY
+                }
+            })
+            setNodes(copyNodes)
+            setMyDragNodeId('')
+        }
+    }
+
+    useEffect(() => {
+        let svg = document.getElementById("canvasDrawDfa");
+        if (svg) {
+            svg.addEventListener("mousemove", handleMoveMouseAddLink);
+            svg.addEventListener("contextmenu", handleContextMenuSvg);
+
+            let circles = document.querySelectorAll("#canvasDrawDfa circle");
+            if (circles) {
+                circles.forEach((circle) => {
+                    circle.addEventListener('contextmenu', (e) => {
+                        e.preventDefault()
+                        if (mode === 3 || mode === 1) {
+                            setMyDragNodeId(e.target.getAttribute('id'))
+                        }
+                    })
+                });
+            }
+        }
+        return () => {
+        };
+    })
 
     return (
         <div >

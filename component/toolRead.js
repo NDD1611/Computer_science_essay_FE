@@ -39,7 +39,6 @@ const ToolRead = ({
         setStart(false)
     }
     const handleStart = () => {
-        console.log(automata)
         if (typeAutomata == 'nfaEpsilon') {
             let epsilonClosure = getEpsilonClosure(automata.initial_state, automata.transition_function)
             setNodeAfterRead(epsilonClosure)
