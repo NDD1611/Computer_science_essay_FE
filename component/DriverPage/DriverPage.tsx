@@ -37,6 +37,13 @@ export const DriverPage = () => {
     const inputUploadFile = useRef<any>();
     const [progressUploads, setProgressUpload] = useState([])
 
+    let userDetailsLocal = JSON.parse(localStorage.getItem("userDetails"));
+    if (!userDetailsLocal) {
+        toast.warn("Sign in to use this feature");
+        router.push("/login");
+        return
+    }
+
     const firebaseConfig = useMemo(() => {
         return {
             apiKey: process.env.NEXT_PUBLIC_API_KEY,
@@ -51,10 +58,7 @@ export const DriverPage = () => {
 
     useEffect(() => {
         let userDetailsLocal = JSON.parse(localStorage.getItem("userDetails"));
-        if (!userDetailsLocal) {
-            toast.warn("Sign in to use this feature");
-            router.push("/login");
-        }
+
         if (userDetailsLocal) {
             (async () => {
                 if (userDetailsLocal) {
@@ -165,7 +169,7 @@ export const DriverPage = () => {
         });
     }, [folderCurrent]);
 
-    const handleClickMydrive = () => {
+    const handleClickMyDrive = () => {
         let rootFolder = findRootFolder(folders, userDetails._id);
         if (rootFolder) {
             setFolderCurrent(rootFolder);
@@ -276,7 +280,7 @@ export const DriverPage = () => {
                             label="My Drive"
                             childrenOffset={28}
                             active={true}
-                            onClick={handleClickMydrive}
+                            onClick={handleClickMyDrive}
                         ></NavLink>
                     </Box>
                 </Box>

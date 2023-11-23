@@ -439,6 +439,33 @@ const ToolDraw = ({
         if (mode === 1 && subMode === "1.0") {
             handleAddLink(e);
         }
+        if (mode === 4) {
+            let nodeId = e.target.getAttribute('id')
+            const inputBox = document.createElement("input");
+            inputBox.type = "text";
+            inputBox.style.position = "absolute";
+            inputBox.style.width = "30px";
+            inputBox.style.className = "removeInput";
+            inputBox.style.left = e.clientX + "px";
+            inputBox.style.top = e.clientY + "px";
+            document.body.appendChild(inputBox);
+            inputBox.focus();
+            inputBox.addEventListener("change", (eventInput) => {
+                let value = eventInput.target.value;
+                console.log(value)
+                let copyNodes = [...nodes]
+                let newNodes = copyNodes.map((node) => {
+                    if (node.id === nodeId) {
+                        node.label = value
+                        return node;
+                    }
+                    return node;
+                });
+                console.log(newNodes)
+                setNodes(newNodes)
+                inputBox.remove();
+            });
+        }
     };
 
     let handlePathClick = (e) => {
@@ -512,7 +539,6 @@ const ToolDraw = ({
                 });
             });
         }
-
         let paths = document.querySelectorAll("#myCanvas path");
         if (paths) {
             paths.forEach((path) => {

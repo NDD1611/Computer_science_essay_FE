@@ -9,4 +9,16 @@
     .input {
         border: 1px solid #ccc;
     }
+
+    .content {
+        padding: 10px;
+
+        div {
+            padding: 10px 0;
+        }
+
+        ul {
+            padding-left: 30px;
+        }
+    }
 }

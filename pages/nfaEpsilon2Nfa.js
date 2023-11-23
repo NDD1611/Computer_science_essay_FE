@@ -31,6 +31,7 @@ const NfaEpsilon2Nfa = () => {
     const [nfa, setNfa] = useState({})
 
     const transition_function_comma = (nfa) => {
+        console.log(nfa)
         let states = nfa.states
         let transition_function = nfa.transition_function
         let alphabets = nfa.alphabets
