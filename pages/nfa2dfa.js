@@ -60,7 +60,6 @@ const Nfa2Dfa = () => {
                 alphabets: alphabets,
                 transition_function: transition_function
             }
-
             let response = await api.nfa2dfa(nfa)
             if (response.err) {
                 console.log(response)

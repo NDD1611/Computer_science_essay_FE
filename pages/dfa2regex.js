@@ -212,8 +212,9 @@ const Dfa2Regex = () => {
                     <div>
                         <button className={styles.convertButton} onClick={handleSubmit}>convert</button>
                     </div>
+                    <div>Regular expression:</div>
                     <div className={styles.regex}>
-                        Regex: {regex}
+                        {regex}
                     </div>
                     <div>
                         <ToolRead

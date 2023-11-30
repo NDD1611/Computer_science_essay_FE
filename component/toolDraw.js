@@ -369,7 +369,7 @@ const ToolDraw = ({
     };
     let handleContextMenuSvg = (e) => {
         e.preventDefault()
-        if ((mode === 3 || mode === 1) && myDragNodeId != '') {
+        if ((mode === 3 || mode === 1) && myDragNodeId != '' && nodeDragCurrent != null) {
             let linkOfNodeId = getAllLinkFromNodeId(nodeDragCurrent.id, links)
             if (linkOfNodeId.length) {
                 let indexLinkOfNodeId = linkOfNodeId.map(link => {

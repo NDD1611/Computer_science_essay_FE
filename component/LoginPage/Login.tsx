@@ -15,6 +15,8 @@ import { useRouter } from 'next/router';
 export const Login = () => {
     const router = useRouter()
     const dispatch = useDispatch()
+    const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+
     const form = useForm({
         initialValues: {
             email: '',
@@ -22,7 +24,7 @@ export const Login = () => {
         },
 
         validate: {
-            email: (value) => (/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(value) ? null : 'Invalid email'),
+            email: (value) => (emailRegex.test(value) ? null : 'Invalid email'),
             password: isNotEmpty('Enter your password'),
         },
     });
@@ -37,7 +39,7 @@ export const Login = () => {
                 type: userActions.SET_USER_DETAILS,
                 userDetails: res.data
             })
-            router.push('/regex2nfa')
+            router.push('/driver')
         }
     }
     return <div className="w-full h-full flex items-center justify-center">
